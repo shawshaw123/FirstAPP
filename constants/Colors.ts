@@ -1,0 +1,48 @@
+const Colors = {
+  dark: {
+    primary: "#00C853",
+    primaryDark: "#009624",
+    primaryLight: "#5EFC82",
+    secondary: "#7C4DFF",
+    secondaryDark: "#3F1DCB",
+    secondaryLight: "#B47CFF",
+    background: "#000000",
+    cardBackground: "#121212",
+    cardBackgroundAlt: "#1A1A1A",
+    text: "#FFFFFF",
+    textSecondary: "#AAAAAA",
+    border: "#333333",
+    error: "#FF5252",
+    success: "#4CAF50",
+    warning: "#FFC107",
+    info: "#2196F3",
+    tabBarBackground: "#000000",
+    tabBarInactive: "#777777",
+    gradientStart: "#000000",
+    gradientEnd: "#121212",
+  },
+  light: {
+    primary: "#00C853",
+    primaryDark: "#009624",
+    primaryLight: "#5EFC82",
+    secondary: "#7C4DFF",
+    secondaryDark: "#3F1DCB",
+    secondaryLight: "#B47CFF",
+    background: "#000000", // Changed to black for light theme too
+    cardBackground: "#121212",
+    cardBackgroundAlt: "#1A1A1A",
+    text: "#FFFFFF",
+    textSecondary: "#AAAAAA",
+    border: "#333333",
+    error: "#FF5252",
+    success: "#4CAF50",
+    warning: "#FFC107",
+    info: "#2196F3",
+    tabBarBackground: "#000000",
+    tabBarInactive: "#777777",
+    gradientStart: "#000000",
+    gradientEnd: "#121212",
+  }
+};
+
+export default Colors;
