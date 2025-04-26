@@ -43,10 +43,17 @@ export default function TabBar() {
       <View style={[styles.container, { backgroundColor: colors.tabBarBackground, borderTopColor: colors.border }]}>
         {tabs.map((tab) => (
             <TabButton
+
                 key={tab.name}
                 tab={tab}
                 isActive={pathname === tab.path}
-                onPress={() => router.push(tab.path}
+                onPress={() => {
+                  if (tab.path === "/map") router.push("/map");
+                  else if (tab.path === "/rentals") router.push("/rentals");
+                  else if (tab.path === "/history") router.push("/history");
+                  else if (tab.path === "/profile") router.push("/profile");
+                }}
+
             />
         ))}
       </View>
@@ -57,7 +64,7 @@ interface TabButtonProps {
   tab: {
     name: string;
     icon: any;
-    path: string;
+    path: any;
   };
   isActive: boolean;
   onPress: () => void;
