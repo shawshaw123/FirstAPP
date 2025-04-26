@@ -9,41 +9,66 @@ export interface User {
 export interface BikeStation {
   id: string;
   name: string;
+  latitude: number;
+  longitude: number;
   availableBikes: number;
   emptySlots: number;
-  location: {
-    latitude: number;
-    longitude: number;
-  };
-  distance?: number;
+  distance: number; // in kilometers
+  isActive: boolean;
 }
 
 export interface Bike {
   id: string;
   name: string;
   stationId: string;
-  available: boolean;
+  isAvailable: boolean;
+  isElectric: boolean;
+  batteryLevel: number;
+  pricePerHour: number;
 }
 
-export interface RentalHistory {
+export interface Rental {
   id: string;
+  userId: string;
   bikeId: string;
-  bikeName: string;
+  startStationId: string;
+  endStationId: string | null;
   startTime: string;
-  endTime: string;
-  startStation: string;
-  endStation: string;
-  duration: string;
-  cost: number;
-  distance: number;
+  endTime: string | null;
+  cost: number | null;
+  status: 'active' | 'completed' | 'cancelled';
 }
 
-export interface ActiveRental {
-  id?: string;
-  bikeId: string;
-  bikeName: string;
-  startTime: string;
-  startStation: string;
-  stationId: string;
-  currentCost: number;
+export interface RentalWithDetails extends Rental {
+  bike: Bike;
+  startStation: BikeStation;
+  endStation: BikeStation | null;
+}
+
+export interface LogEntry {
+  id: string;
+  timestamp: string;
+  level: 'info' | 'warning' | 'error';
+  message: string;
+  data?: any;
+}
+
+export interface Task {
+  id: string;
+  description: string;
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  priority: 'high' | 'medium' | 'low';
+  createdAt: string;
+  startedAt?: string;
+  completedAt?: string;
+  error?: string;
+}
+
+export interface PaymentMethod {
+  id: string;
+  type: 'gcash' | 'paymaya' | 'credit_card';
+  name: string;
+  isDefault: boolean;
+  lastFour?: string;
+  expiryDate?: string;
 }

@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from '@/components';
-import { db, auth } from './config';
-import { ref, set, get, child, update } from "firebase/database";
+
 
 // Mock user data for development
 const MOCK_USERS = [
@@ -57,11 +56,12 @@ export const registerUser = async (
     studentId: string,
     password: string
 ): Promise<User> => {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
   // Check if email already exists
-  const snapshot = await get(child(ref(db), `users`));
-  const users = snapshot.exists() ? snapshot.val() : {};
-  const emailExists = Object.values(users).some((user: any) => user.email === email);
-  if (emailExists) {
+  const existingUser = MOCK_USERS.find(user => user.email === email);
+  if (existingUser) {
     throw new Error('Email already in use');
   }
 
@@ -71,14 +71,18 @@ export const registerUser = async (
     name,
     email,
     studentId,
-    walletBalance: 1000000,
+    walletBalance: 1000000, // Initial balance
   };
 
-  // Save to Firebase
-  await set(ref(db, `users/${newUser.id}`), {
-    ...newUser,
-    password // Store password for demo only; in production, hash passwords!
+  // Add to mock users
+  MOCK_USERS.push({
+    email,
+    password,
+    profile: newUser
   });
+
+  // Save to storage
+  await saveUser(newUser);
 
   return newUser;
 };

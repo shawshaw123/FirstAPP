@@ -91,9 +91,15 @@ export const useAuthStore = create<AuthState>()(
             const user = get().user;
             if (!user) return;
 
+            set({ isLoading: true, error: null });
+
             try {
+              // Call the service to add funds
               await addFundsToWallet(user.id, amount);
+
+              // Update the local state with the new balance
               set({
+                isLoading: false,
                 user: {
                   ...user,
                   walletBalance: user.walletBalance + amount,
@@ -101,6 +107,7 @@ export const useAuthStore = create<AuthState>()(
               });
             } catch (error) {
               set({
+                isLoading: false,
                 error: error instanceof Error ? error.message : "Failed to add funds"
               });
             }
