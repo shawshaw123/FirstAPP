@@ -12,8 +12,8 @@ import { useRouter } from "expo-router";
 import { useTheme } from "@/components/theme-context";
 import TabBar from "@/components/TabBar";
 import RentalHistoryCard from "@/components/RentalHistoryCard";
-import { useAuthStore } from "@/components/auth-store";
-import { useRentalStore } from "@/components/rental-store";
+import { useAuthStore } from "@/store/auth-store";
+import { useRentalStore } from "@/store/rental-store";
 import { Clock } from "lucide-react-native";
 
 export default function HistoryScreen() {

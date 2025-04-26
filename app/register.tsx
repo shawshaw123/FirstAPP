@@ -14,7 +14,7 @@ import { useRouter } from "expo-router";
 import Colors from "@/constants/Colors";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
-import { useAuthStore } from "@/components/auth-store";
+import { useAuthStore } from "@/store/auth-store";
 import { ArrowLeft } from "lucide-react-native";
 
 export default function RegisterScreen() {

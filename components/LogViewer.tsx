@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useTheme } from '@/components/theme-context';
 import { useLogging } from '@/hooks/use-logging';
-import { LogEntry, LogLevel } from '@/components/loggers';
+import { LogEntry, LogLevel } from '@/services/loggers';
 import { X, Share2, Trash2, Filter } from 'lucide-react-native';
 
 interface LogViewerProps {

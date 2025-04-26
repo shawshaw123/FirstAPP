@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useTheme } from '@/components/theme-context';
 import { useConcurrentOperations } from '@/hooks/use-concurrent-operations';
-import { TaskStatus, QueueTask } from '@/components/concurrent-queue';
+import { TaskStatus, QueueTask } from '@/services/concurrent-queue';
 import { X, Play, Pause, RefreshCw, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react-native';
 
 interface TaskMonitorProps {

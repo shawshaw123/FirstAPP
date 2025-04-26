@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { usePathname } from 'expo-router';
-import { logger, LogLevel } from '@/components/loggers';
-import { useAuthStore } from '@/components/auth-store';
+import { logger, LogLevel } from '@/services/loggers';
+import { useAuthStore } from '@/store/auth-store';
 
 export function useLogging() {
     const pathname = usePathname();

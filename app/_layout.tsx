@@ -5,9 +5,9 @@ import { useEffect } from "react";
 import { Platform, StatusBar, View } from "react-native";
 import { ErrorBoundary } from "@/app/error-boundary";
 import { ThemeProvider, useTheme } from "@/components/theme-context";
-import { logger } from "@/components/loggers";
-import { backgroundTaskManager } from "@/components/background-task";
-import { concurrentQueue } from "@/components/concurrent-queue";
+import { logger } from "@/services/loggers";
+import { backgroundTaskManager } from "@/services/background-task";
+import { concurrentQueue } from "@/services/concurrent-queue";
 
 export {
   // Catch any errors thrown by the Layout component.

@@ -1,7 +1,7 @@
 import { AppState, AppStateStatus, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
-import { logger } from '@/components/loggers';
+import { logger } from '@/services/loggers';
 
 // Storage keys
 const BACKGROUND_TASKS_KEY = 'background_tasks';

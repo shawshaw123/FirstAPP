@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { backgroundTaskManager, TaskType, TaskStatus } from '@/components/background-task';
-import { logger } from '@/components/loggers';
-import { useRentalStore } from '@/components/rental-store';
+import { backgroundTaskManager, TaskType, TaskStatus } from '@/services/background-task';
+import { logger } from '@/services/loggers';
+import { useRentalStore } from '@/store/rental-store';
 import { ActiveRental } from '@/components';
 
 // Storage key for the last processed time

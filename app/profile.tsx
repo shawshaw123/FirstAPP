@@ -17,14 +17,14 @@ import { useRouter } from "expo-router";
 import { useTheme } from "@/components/theme-context";
 import TabBar from "@/components/TabBar";
 import Button from "@/components/Button";
-import { useAuthStore } from "@/components/auth-store";
+import { useAuthStore } from "@/store/auth-store";
 import { User, Info, FileText, LogOut, CreditCard, Settings, Award, List, Activity } from "lucide-react-native";
 import GradientCard from "@/components/GradientCard";
 import LogViewer from "@/components/LogViewer";
 import TaskMonitor from "@/components/TaskMonitor";
 import { useLogging } from "@/hooks/use-logging";
 import { useConcurrentOperations } from "@/hooks/use-concurrent-operations";
-import { TaskPriority } from "@/components/concurrent-queue";
+import { TaskPriority } from "@/services/concurrent-queue";
 
 export default function ProfileScreen() {
   const router = useRouter();

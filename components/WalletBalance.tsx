@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useTheme } from "@/components/theme-context";
-import { useAuthStore } from "@/components/auth-store";
+import { useAuthStore } from "@/store/auth-store";
 
 export default function WalletBalance() {
   const { user } = useAuthStore();

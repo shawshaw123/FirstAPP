@@ -1,4 +1,4 @@
-import { logger } from '@/components/loggers';
+import { logger } from '@/services/loggers';
 
 // Task priority levels
 export enum TaskPriority {

@@ -10,8 +10,8 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 import Colors from "@/constants/Colors";
 import Button from "@/components/Button";
-import { useRentalStore } from "@/components/rental-store";
-import { useStationStore } from "@/components/station-store";
+import { useRentalStore } from "@/store/rental-store";
+import { useStationStore } from "@/store/station-store";
 import { X } from "lucide-react-native";
 
 export default function ScanScreen() {

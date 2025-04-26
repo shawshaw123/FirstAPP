@@ -13,8 +13,8 @@ import { useRouter } from "expo-router";
 import { useTheme } from "@/components/theme-context";
 import BikeStationCard from "@/components/BikeStationCard";
 import TabBar from "@/components/TabBar";
-import { useAuthStore } from "@/components/auth-store";
-import { useStationStore } from "@/components/station-store";
+import { useAuthStore } from "@/store/auth-store";
+import { useStationStore } from "@/store/station-store";
 import { Search, MapPin, QrCode } from "lucide-react-native";
 
 export default function MapScreen() {
@@ -54,7 +54,7 @@ export default function MapScreen() {
   }, [searchQuery, stations]);
 
   const handleStationPress = (stationId: string) => {
-    router.push(`/station/${stationId}`);
+    router.push(`//${stationId}`);
   };
 
   const handleFindNearby = () => {

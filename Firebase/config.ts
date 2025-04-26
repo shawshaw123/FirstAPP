@@ -7,12 +7,13 @@ const isMockMode = true; // Set to false when you have real Firebase credentials
 // Your web app's Firebase configuration
 // Replace with your actual Firebase config values when ready for production
 const firebaseConfig = {
-  apiKey: "mock-api-key",
-  authDomain: "mock-auth-domain",
-  projectId: "mock-project-id",
-  storageBucket: "mock-storage-bucket",
-  messagingSenderId: "mock-messaging-sender-id",
-  appId: "mock-app-id"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "protoapp-d9b2a.firebaseapp.com",
+  databaseURL: "https://protoapp-d9b2a-default-rtdb.firebaseio.com/",
+  projectId: "protoapp-d9b2a",
+  storageBucket: "protoapp-d9b2a.appspot.com",
+  messagingSenderId: "140770972837",
+  appId: "1:140770972837:web:478f077e90e2a989824089"
 };
 
 // Mock Firebase implementations

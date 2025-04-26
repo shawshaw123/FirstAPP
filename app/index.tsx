@@ -14,7 +14,7 @@ import { useRouter } from "expo-router";
 import { useTheme } from "@/components/theme-context";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
-import { useAuthStore } from "@/components/auth-store";
+import { useAuthStore } from "@/store/auth-store";
 import { ArrowLeft } from "lucide-react-native";
 
 export default function LoginScreen() {
