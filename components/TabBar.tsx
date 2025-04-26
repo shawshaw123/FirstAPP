@@ -39,6 +39,7 @@ export default function TabBar() {
     },
   ];
 
+
   return (
       <View style={[styles.container, { backgroundColor: colors.tabBarBackground, borderTopColor: colors.border }]}>
         {tabs.map((tab) => (
