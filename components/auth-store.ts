@@ -7,7 +7,7 @@ import {
   loginUser,
   logoutUser,
   addFundsToWallet
-} from "@/components/auth-service";
+} from "@/Firebase/auth-service";
 
 interface AuthState {
   user: User | null;

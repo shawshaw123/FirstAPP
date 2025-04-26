@@ -7,7 +7,7 @@ import {
   endRental as endRentalService,
   getRentalHistory,
   getActiveRental
-} from "@/components/station-service";
+} from "@/Firebase/station-service";
 import { useAuthStore } from "./auth-store";
 
 interface RentalState {

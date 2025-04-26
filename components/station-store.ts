@@ -4,7 +4,7 @@ import {
   getStations as getStationsService,
   getStationById as getStationByIdService,
   getBikesByStation as getBikesByStationService
-} from "@/components/station-service";
+} from "@/Firebase/station-service";
 
 interface StationState {
   stations: BikeStation[];
