@@ -208,6 +208,10 @@ export default function RentalsScreen() {
     // Use concurrent operations to process booking
     setIsBookingProcessing(true);
 
+    setIsBookingProcessing(true);
+
+    setIsBookingProcessing(true);
+
     executeConcurrently(
         async () => {
           // Simulate booking process with network delay
@@ -242,7 +246,7 @@ export default function RentalsScreen() {
           priority: TaskPriority.NORMAL,
           description: "Process bike booking"
         }
-    ).then(taskId => {
+    ).then((taskID: any) => {
       // This will run after the task is scheduled, not after it completes
       setTimeout(() => {
         setIsBookingProcessing(false);
