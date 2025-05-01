@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: Colors.dark.text,
+    color: Colors.light.text,
   },
   content: {
     flex: 1,
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 12,
     fontWeight: "600",
-    color: Colors.dark.textSecondary,
+    color: Colors.light.textSecondary,
     marginBottom: 8,
   },
   createButtonContainer: {
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   createText: {
     fontSize: 12,
     fontWeight: "600",
-    color: Colors.dark.textSecondary,
+    color: Colors.light.textSecondary,
     marginBottom: 8,
   },
   createButton: {

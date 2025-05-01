@@ -1,141 +1,237 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Alert,
+  Animated,
+  Easing,
+  Dimensions,
+  AppState
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useTheme } from "@/components/theme-context";
+import { LinearGradient } from "expo-linear-gradient";
 import Button from "@/components/Button";
-import Input from "@/components/Input";
 import { useAuthStore } from "@/store/auth-store";
-import { ArrowLeft } from "lucide-react-native";
+import { Bike, ChevronRight } from "lucide-react-native";
+import { useTheme } from "@/components/theme-context";
+import { useLogging } from "@/hooks/use-logging";
+import { backgroundTaskManager, TaskType } from "@/services/background-task";
 
-export default function LoginScreen() {
+const { width } = Dimensions.get("window");
+
+export default function WelcomeScreen() {
   const router = useRouter();
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const { colors } = useTheme();
+  const { logInfo } = useLogging();
+  const appState = useRef(AppState.currentState);
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState({
-    email: "",
-    password: "",
-  });
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const bikePosition = useRef(new Animated.Value(-width)).current;
 
   useEffect(() => {
-    if (error) {
-      Alert.alert("Login Error", error);
-      clearError();
-    }
-  }, [error]);
+    // Log screen view
+    logInfo("Welcome screen viewed");
 
-  const validateForm = () => {
-    let isValid = true;
-    const newErrors = { email: "", password: "" };
+    // Start animations
+    Animated.sequence([
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+          easing: Easing.out(Easing.cubic),
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: true,
+          easing: Easing.out(Easing.cubic),
+        }),
+      ]),
+      Animated.timing(bikePosition, {
+        toValue: 0,
+        duration: 1000,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.cubic),
+      }),
+    ]).start();
 
-    if (!email) {
-      newErrors.email = "Email is required";
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Email is invalid";
-      isValid = false;
-    }
+    // Check authentication after animations
+    const checkAuth = async () => {
+      if (isAuthenticated) {
+        logInfo("User already authenticated, redirecting to map");
+        setTimeout(() => {
+          router.replace("/map");
+        }, 500);
+      }
+    };
 
-    if (!password) {
-      newErrors.password = "Password is required";
-      isValid = false;
-    }
+    checkAuth();
 
-    setErrors(newErrors);
-    return isValid;
+    // Set up app state change listener for background processing demo
+    const subscription = AppState.addEventListener("change", nextAppState => {
+      logInfo("App state changed", { from: appState.current, to: nextAppState });
+
+      // If app is going to background, schedule a background task
+      if (appState.current === "active" && nextAppState.match(/inactive|background/)) {
+        // Schedule a demo background task
+        backgroundTaskManager.scheduleTask(TaskType.DATA_SYNC, {
+          message: "Background task scheduled when app went to background",
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isAuthenticated]);
+
+  const handleGetStarted = () => {
+    logInfo("User clicked Get Started button");
+    router.push("/login");
   };
 
-  const handleLogin = async () => {
-    if (!validateForm()) return;
+  // Bike animation
+  const bikeAnim = useRef(new Animated.Value(0)).current;
 
-    const success = await login(email, password);
-    if (success) {
-      router.replace("/map");
-    }
-  };
+  useEffect(() => {
+    Animated.loop(
+        Animated.sequence([
+          Animated.timing(bikeAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+            easing: Easing.inOut(Easing.quad),
+          }),
+          Animated.timing(bikeAnim, {
+            toValue: 0,
+            duration: 1000,
+            useNativeDriver: true,
+            easing: Easing.inOut(Easing.quad),
+          }),
+        ])
+    ).start();
+  }, []);
 
-  const handleSignUp = () => {
-    router.push("/register");
-  };
-
-  const handleBack = () => {
-    router.back();
-  };
+  const bikeTranslateY = bikeAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -10],
+  });
 
   return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={styles.keyboardAvoidingView}
+      <View style={styles.container}>
+        <LinearGradient
+            colors={["#000000", "#00C85310"] as const}
+            style={styles.gradient}
         >
-          <ScrollView contentContainerStyle={styles.scrollView}>
-            <View style={styles.header}>
-              <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-                <ArrowLeft size={24} color={colors.text} />
-              </TouchableOpacity>
-              <Text style={[styles.headerTitle, { color: colors.text }]}>Log in</Text>
-            </View>
-
+          <SafeAreaView style={styles.safeArea}>
             <View style={styles.content}>
-              <Text style={[styles.title, { color: colors.text }]}>WELCOME</Text>
-              <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-                Log in with your student credential to continue
-              </Text>
+              <Animated.View
+                  style={[
+                    styles.logoContainer,
+                    {
+                      opacity: fadeAnim,
+                      transform: [{ translateY: slideAnim }],
+                      backgroundColor: "#00C85320"
+                    }
+                  ]}
+              >
+                <Animated.View
+                    style={{
+                      transform: [
+                        { translateX: bikePosition },
+                        { translateY: bikeTranslateY },
+                      ],
+                    }}
+                >
+                  <Bike size={80} color="#00C853" />
+                </Animated.View>
+              </Animated.View>
 
-              <View style={styles.form}>
-                <Input
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="Enter your E-mail"
-                    keyboardType="email-address"
-                    icon="mail"
-                    error={errors.email}
-                    autoFocus
-                />
+              <Animated.View
+                  style={{
+                    opacity: fadeAnim,
+                    transform: [{ translateY: slideAnim }],
+                  }}
+              >
+                <Text style={[styles.title, { color: "#FFFFFF" }]}>Forda GO</Text>
+                <Text style={[styles.subtitle, { color: "#AAAAAA" }]}>Campus E-bike Rental</Text>
+              </Animated.View>
 
-                <Input
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholder="Enter your password"
-                    secureTextEntry
-                    icon="lock"
-                    error={errors.password}
-                />
+              <Animated.View
+                  style={[
+                    styles.descriptionContainer,
+                    {
+                      opacity: fadeAnim,
+                      transform: [{ translateY: slideAnim }],
+                    },
+                  ]}
+              >
+                <Text style={[styles.description, { color: "#AAAAAA" }]}>
+                  Rent e-bikes easily, save time, and reduce your carbon footprint while getting around campus.
+                </Text>
+              </Animated.View>
 
-                <TouchableOpacity style={styles.forgotPassword}>
-                  <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Forgot Password?</Text>
-                </TouchableOpacity>
-
-                <Button
-                    title="Log In"
-                    onPress={handleLogin}
-                    isLoading={isLoading}
-                    style={styles.loginButton}
-                />
-              </View>
+              <Animated.View
+                  style={[
+                    styles.featuresContainer,
+                    {
+                      opacity: fadeAnim,
+                      transform: [{ translateY: slideAnim }],
+                    },
+                  ]}
+              >
+                <View style={styles.featureRow}>
+                  <View style={[styles.featureNumber, { backgroundColor: "#00C85320" }]}>
+                    <Text style={[styles.featureNumberText, { color: "#00C853" }]}>1</Text>
+                  </View>
+                  <Text style={[styles.featureText, { color: "#FFFFFF" }]}>Find available bikes near you</Text>
+                </View>
+                <View style={styles.featureRow}>
+                  <View style={[styles.featureNumber, { backgroundColor: "#00C85320" }]}>
+                    <Text style={[styles.featureNumberText, { color: "#00C853" }]}>2</Text>
+                  </View>
+                  <Text style={[styles.featureText, { color: "#FFFFFF" }]}>Unlock with QR code</Text>
+                </View>
+                <View style={styles.featureRow}>
+                  <View style={[styles.featureNumber, { backgroundColor: "#00C85320" }]}>
+                    <Text style={[styles.featureNumberText, { color: "#00C853" }]}>3</Text>
+                  </View>
+                  <Text style={[styles.featureText, { color: "#FFFFFF" }]}>Track your rides and save time</Text>
+                </View>
+              </Animated.View>
             </View>
 
-            <View style={styles.footer}>
-              <Text style={[styles.footerText, { color: colors.textSecondary }]}>Don't have an account? </Text>
-              <TouchableOpacity onPress={handleSignUp}>
-                <Text style={[styles.signUpText, { color: colors.primary }]}>Sign up</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+            <Animated.View
+                style={[
+                  styles.footer,
+                  {
+                    opacity: fadeAnim,
+                    transform: [{ translateY: slideAnim }],
+                  },
+                ]}
+            >
+              <Button
+                  title="Get Started"
+                  onPress={handleGetStarted}
+                  variant="gradient"
+                  size="large"
+                  style={styles.button}
+                  icon={<ChevronRight size={20} color="#fff" />}
+                  iconPosition="right"
+              />
+              <View style={[styles.indicator, { backgroundColor: "#333333" }]} />
+            </Animated.View>
+          </SafeAreaView>
+        </LinearGradient>
+      </View>
   );
 }
 
@@ -144,64 +240,82 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#000000",
   },
-  keyboardAvoidingView: {
+  gradient: {
     flex: 1,
   },
-  scrollView: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingTop: 16,
-    marginBottom: 40,
-  },
-  backButton: {
-    padding: 8,
-    marginRight: 16,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
+  safeArea: {
+    flex: 1,
   },
   content: {
     flex: 1,
+    alignItems: "center",
     justifyContent: "center",
+    paddingHorizontal: 24,
+  },
+  logoContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 24,
+    overflow: "hidden",
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: "bold",
-    marginBottom: 12,
+    marginBottom: 8,
+    textAlign: "center",
   },
   subtitle: {
+    fontSize: 18,
+    marginBottom: 32,
+    textAlign: "center",
+  },
+  descriptionContainer: {
+    marginBottom: 32,
+  },
+  description: {
     fontSize: 16,
-    marginBottom: 40,
+    textAlign: "center",
+    lineHeight: 24,
   },
-  form: {
+  featuresContainer: {
     width: "100%",
+    gap: 16,
   },
-  forgotPassword: {
-    alignSelf: "flex-end",
-    marginBottom: 24,
+  featureRow: {
+    flexDirection: "row",
+    alignItems: "center",
   },
-  forgotPasswordText: {
-    fontSize: 14,
+  featureNumber: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
   },
-  loginButton: {
-    marginTop: 8,
+  featureNumberText: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  featureText: {
+    fontSize: 16,
+    flex: 1,
   },
   footer: {
-    flexDirection: "row",
-    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingBottom: 40,
     alignItems: "center",
-    paddingVertical: 24,
   },
-  footerText: {
-    fontSize: 14,
+  button: {
+    width: "100%",
+    marginBottom: 24,
   },
-  signUpText: {
-    fontSize: 14,
-    fontWeight: "600",
+  indicator: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
   },
 });

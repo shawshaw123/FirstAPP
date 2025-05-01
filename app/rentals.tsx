@@ -101,7 +101,7 @@ export default function RentalsScreen() {
 
   useEffect(() => {
     if (error) {
-      logError("Rental error", error);
+      logError("Rental error", { error });
       Alert.alert("Error", error);
     }
   }, [error]);
@@ -169,7 +169,7 @@ export default function RentalsScreen() {
                       }
                       return { success: false, error: "Failed to end rental" };
                     } catch (error) {
-                      logError("Rental error", error);
+                      logError("Rental error", { error });
                       Alert.alert("Error", "Failed to end rental. Please try again.");
                       return { success: false, error };
                     }
@@ -214,7 +214,7 @@ export default function RentalsScreen() {
     setIsBookingProcessing(true);
 
     // Execute the concurrent operation
-    executeConcurrently(
+    const taskId = executeConcurrently(
         async () => {
           // Simulate booking process with network delay
           await new Promise(resolve => setTimeout(resolve, 2000));

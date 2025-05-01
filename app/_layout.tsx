@@ -3,7 +3,7 @@ import { useFonts } from "expo-font";
 import { Stack, SplashScreen } from "expo-router";
 import { useEffect } from "react";
 import { Platform, StatusBar, View } from "react-native";
-import { ErrorBoundary } from "@/app/error-boundary";
+import { ErrorBoundary } from "./error-boundary";
 import { ThemeProvider, useTheme } from "@/components/theme-context";
 import { logger } from "@/services/logger";
 import { backgroundTaskManager } from "@/services/background-task";
@@ -91,7 +91,7 @@ function RootLayoutNav() {
           <Stack.Screen name="rentals" options={{ headerShown: false }} />
           <Stack.Screen name="history" options={{ headerShown: false }} />
           <Stack.Screen name="profile" options={{ headerShown: false }} />
-          <Stack.Screen name="scan" options={{ headerShown: false }} />
+          <Stack.Screen name="scan" options={{ headerShown: false, animation: 'fade' }} />
           <Stack.Screen name="station/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: "modal", headerShown: false }} />
         </Stack>

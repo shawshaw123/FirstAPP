@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
@@ -21,7 +21,7 @@ export default function LoginScreen() {
   const router = useRouter();
   const { login, isLoading, error, clearError } = useAuthStore();
   const { colors } = useTheme();
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({
@@ -75,67 +75,67 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoidingView}
-      >
-        <ScrollView contentContainerStyle={styles.scrollView}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-              <ArrowLeft size={24} color={colors.text} />
-            </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>Log in</Text>
-          </View>
-
-          <View style={styles.content}>
-            <Text style={[styles.title, { color: colors.text }]}>WELCOME</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Log in with your student credential to continue
-            </Text>
-
-            <View style={styles.form}>
-              <Input
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Enter your E-mail"
-                keyboardType="email-address"
-                icon="mail"
-                error={errors.email}
-                autoFocus
-              />
-
-              <Input
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Enter your password"
-                secureTextEntry
-                icon="lock"
-                error={errors.password}
-              />
-
-              <TouchableOpacity style={styles.forgotPassword}>
-                <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Forgot Password?</Text>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.keyboardAvoidingView}
+        >
+          <ScrollView contentContainerStyle={styles.scrollView}>
+            <View style={styles.header}>
+              <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+                <ArrowLeft size={24} color={colors.text} />
               </TouchableOpacity>
-
-              <Button
-                title="Log In"
-                onPress={handleLogin}
-                isLoading={isLoading}
-                style={styles.loginButton}
-              />
+              <Text style={[styles.headerTitle, { color: colors.text }]}>Log in</Text>
             </View>
-          </View>
 
-          <View style={styles.footer}>
-            <Text style={[styles.footerText, { color: colors.textSecondary }]}>Don't have an account? </Text>
-            <TouchableOpacity onPress={handleSignUp}>
-              <Text style={[styles.signUpText, { color: colors.primary }]}>Sign up</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            <View style={styles.content}>
+              <Text style={[styles.title, { color: colors.text }]}>WELCOME</Text>
+              <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+                Log in with your student credential to continue
+              </Text>
+
+              <View style={styles.form}>
+                <Input
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="Enter your E-mail"
+                    keyboardType="email-address"
+                    icon="mail"
+                    error={errors.email}
+                    autoFocus
+                />
+
+                <Input
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="Enter your password"
+                    secureTextEntry
+                    icon="lock"
+                    error={errors.password}
+                />
+
+                <TouchableOpacity style={styles.forgotPassword}>
+                  <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Forgot Password?</Text>
+                </TouchableOpacity>
+
+                <Button
+                    title="Log In"
+                    onPress={handleLogin}
+                    isLoading={isLoading}
+                    style={styles.loginButton}
+                />
+              </View>
+            </View>
+
+            <View style={styles.footer}>
+              <Text style={[styles.footerText, { color: colors.textSecondary }]}>Don't have an account? </Text>
+              <TouchableOpacity onPress={handleSignUp}>
+                <Text style={[styles.signUpText, { color: colors.primary }]}>Sign up</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
   );
 }
 

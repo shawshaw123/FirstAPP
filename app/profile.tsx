@@ -18,7 +18,7 @@ import { useTheme } from "@/components/theme-context";
 import TabBar from "@/components/TabBar";
 import Button from "@/components/Button";
 import { useAuthStore } from "@/store/auth-store";
-import { User, Info, FileText, LogOut, CreditCard, Settings, Award } from "lucide-react-native";
+import { User, Info, FileText, LogOut, CreditCard, Settings } from "lucide-react-native";
 import GradientCard from "@/components/GradientCard";
 import { useLogging } from "@/hooks/use-logging";
 import { useConcurrentOperations } from "@/hooks/use-concurrent-operations";
@@ -219,15 +219,6 @@ export default function ProfileScreen() {
                   <CreditCard size={20} color="#00C853" />
                 </View>
                 <Text style={[styles.menuItemText, { color: "#FFFFFF" }]}>Payment Methods</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.menuItem, { backgroundColor: "#121212" }]}>
-              <View style={styles.menuItemLeft}>
-                <View style={[styles.menuIconContainer, { backgroundColor: "#00C85320" }]}>
-                  <Award size={20} color="#00C853" />
-                </View>
-                <Text style={[styles.menuItemText, { color: "#FFFFFF" }]}>Achievements</Text>
               </View>
             </TouchableOpacity>
           </View>

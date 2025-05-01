@@ -1,100 +1,145 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { useFonts } from "expo-font";
-import { Stack, SplashScreen } from "expo-router";
-import { useEffect } from "react";
-import { Platform, StatusBar, View } from "react-native";
-import { ErrorBoundary } from "./error-boundary";
-import { ThemeProvider, useTheme } from "@/components/theme-context";
-import { logger } from "@/services/logger";
-import { backgroundTaskManager } from "@/services/background-task";
-import { concurrentQueue } from "@/services/concurrent-queue";
+import React from 'react';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from "expo-router";
-
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: "(tabs)",
-};
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    ...FontAwesome.font,
-  });
-
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) {
-      logger.error("Font loading error", error);
-      throw error;
-    }
-  }, [error]);
-
-  useEffect(() => {
-    if (loaded) {
-      // Initialize services
-      Promise.all([
-        logger.init(),
-        backgroundTaskManager.init(),
-      ]).then(() => {
-        logger.info("App initialized successfully");
-        SplashScreen.hideAsync();
-      }).catch(error => {
-        logger.error("Failed to initialize app", error);
-        SplashScreen.hideAsync();
-      });
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
-  return (
-      <ThemeProvider defaultTheme="dark">
-        <RootLayoutNav />
-      </ThemeProvider>
-  );
+interface Props {
+  children: React.ReactNode;
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
 }
 
-function RootLayoutNav() {
-  const { colors } = useTheme();
+interface State {
+  hasError: boolean;
+  error: Error | null;
+}
 
-  // Log navigation events
-  useEffect(() => {
-    logger.info("App started", {
-      platform: Platform.OS,
-      version: Platform.Version,
+const IFRAME_ID = 'rork-web-preview';
+
+const webTargetOrigins = [
+  "http://localhost:3000",
+  "https://rorkai.com",
+  "https://rork.app",
+];
+
+function sendErrorToIframeParent(error: any, errorInfo?: any) {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    console.debug('Sending error to parent:', {
+      error,
+      errorInfo,
+      referrer: document.referrer
     });
 
-    return () => {
-      logger.info("App closed");
+    const errorMessage = {
+      type: 'ERROR',
+      error: {
+        message: error?.message || error?.toString() || 'Unknown error',
+        stack: error?.stack,
+        componentStack: errorInfo?.componentStack,
+        timestamp: new Date().toISOString(),
+      },
+      iframeId: IFRAME_ID,
     };
-  }, []);
 
-  return (
-      <View style={{ flex: 1, backgroundColor: "#000000" }}>
-        <StatusBar
-            barStyle="light-content"
-            backgroundColor="#000000"
-        />
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="register" options={{ headerShown: false }} />
-          <Stack.Screen name="map" options={{ headerShown: false }} />
-          <Stack.Screen name="rentals" options={{ headerShown: false }} />
-          <Stack.Screen name="history" options={{ headerShown: false }} />
-          <Stack.Screen name="profile" options={{ headerShown: false }} />
-          <Stack.Screen name="scan" options={{ headerShown: false }} />
-          <Stack.Screen name="station/[id]" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: "modal", headerShown: false }} />
-        </Stack>
-      </View>
-  );
+    try {
+      window.parent.postMessage(
+          errorMessage,
+          webTargetOrigins.includes(document.referrer) ? document.referrer : '*'
+      );
+    } catch (postMessageError) {
+      console.error('Failed to send error to parent:', postMessageError);
+    }
+  }
 }
+
+if (Platform.OS === 'web' && typeof window !== 'undefined') {
+  window.addEventListener('error', (event) => {
+    event.preventDefault();
+    const errorDetails = event.error ?? {
+      message: event.message ?? 'Unknown error',
+      filename: event.filename ?? 'Unknown file',
+      lineno: event.lineno ?? 'Unknown line',
+      colno: event.colno ?? 'Unknown column'
+    };
+    sendErrorToIframeParent(errorDetails);
+  }, true);
+
+  window.addEventListener('unhandledrejection', (event) => {
+    event.preventDefault();
+    sendErrorToIframeParent(event.reason);
+  }, true);
+
+  const originalConsoleError = console.error;
+  console.error = (...args) => {
+    sendErrorToIframeParent(args.join(' '));
+    originalConsoleError.apply(console, args);
+  };
+}
+
+export class ErrorBoundary extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    sendErrorToIframeParent(error, errorInfo);
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+          <View style={styles.container}>
+            <View style={styles.content}>
+              <Text style={styles.title}>Something went wrong</Text>
+              <Text style={styles.subtitle}>{this.state.error?.message}</Text>
+              {Platform.OS !== 'web' && (
+                  <Text style={styles.description}>
+                    Please check your device logs for more details.
+                  </Text>
+              )}
+            </View>
+          </View>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  content: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 36,
+    textAlign: 'center',
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  description: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+});
+
+export default ErrorBoundary;
