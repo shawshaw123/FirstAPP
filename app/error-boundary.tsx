@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { Platform, StatusBar, View } from "react-native";
 import { ErrorBoundary } from "./error-boundary";
 import { ThemeProvider, useTheme } from "@/components/theme-context";
-import { logger } from "@/services/loggers";
+import { logger } from "@/services/logger";
 import { backgroundTaskManager } from "@/services/background-task";
 import { concurrentQueue } from "@/services/concurrent-queue";
 

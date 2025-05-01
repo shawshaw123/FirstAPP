@@ -1,7 +1,7 @@
 import { AppState, AppStateStatus, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
-import { logger } from '@/services/loggers';
+import { logger } from './logger';
 
 // Storage keys
 const BACKGROUND_TASKS_KEY = 'background_tasks';
@@ -51,7 +51,7 @@ class BackgroundTaskManager {
     private handlers: Record<TaskType, TaskHandler> = {} as Record<TaskType, TaskHandler>;
     private appState: AppStateStatus = 'active';
     private initialized = false;
-    private processingInterval: NodeJS.Timeout | null = null;
+    private processingInterval: number | null = null;
     private lastForegroundTime: number = Date.now();
 
     private constructor() {
@@ -114,7 +114,9 @@ class BackgroundTaskManager {
                     shouldShowAlert: true,
                     shouldPlaySound: true,
                     shouldSetBadge: false,
-                }),
+                    shouldShowBanner: true,
+                    shouldShowList: true
+                })
             });
         }
     }

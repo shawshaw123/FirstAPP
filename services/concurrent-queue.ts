@@ -1,4 +1,4 @@
-import { logger } from '@/services/loggers';
+import { logger } from './logger';
 
 // Task priority levels
 export enum TaskPriority {

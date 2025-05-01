@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { concurrentQueue, TaskPriority, TaskStatus, QueueTask } from '@/services/concurrent-queue';
-import { logger } from '@/services/loggers';
+import { logger } from '@/services/logger';
 
 interface UseConcurrentOperationsProps {
     onTaskComplete?: (taskId: string, result: any) => void;

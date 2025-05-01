@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { backgroundTaskManager, TaskType, TaskStatus } from '@/services/background-task';
-import { logger } from '@/services/loggers';
+import { logger } from '@/services/logger';
 import { useRentalStore } from '@/store/rental-store';
 import { ActiveRental } from '@/components';
 

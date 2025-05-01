@@ -34,7 +34,7 @@ export default function TaskMonitor({ visible, onClose }: TaskMonitorProps) {
 
     // Force refresh every second while processing
     useEffect(() => {
-        let intervalId: NodeJS.Timeout;
+        let intervalId: number;
 
         if (isProcessing && visible) {
             intervalId = setInterval(() => {

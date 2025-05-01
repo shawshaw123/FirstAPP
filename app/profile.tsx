@@ -18,10 +18,8 @@ import { useTheme } from "@/components/theme-context";
 import TabBar from "@/components/TabBar";
 import Button from "@/components/Button";
 import { useAuthStore } from "@/store/auth-store";
-import { User, Info, FileText, LogOut, CreditCard, Settings, Award, List, Activity } from "lucide-react-native";
+import { User, Info, FileText, LogOut, CreditCard, Settings, Award } from "lucide-react-native";
 import GradientCard from "@/components/GradientCard";
-import LogViewer from "@/components/LogViewer";
-import TaskMonitor from "@/components/TaskMonitor";
 import { useLogging } from "@/hooks/use-logging";
 import { useConcurrentOperations } from "@/hooks/use-concurrent-operations";
 import { TaskPriority } from "@/services/concurrent-queue";
@@ -31,15 +29,11 @@ export default function ProfileScreen() {
   const { user, isAuthenticated, isLoading, error, logout, addFunds, clearError } = useAuthStore();
   const { colors } = useTheme();
   const { logInfo, logError } = useLogging();
-  const { executeConcurrently, stats } = useConcurrentOperations();
+  const { executeConcurrently } = useConcurrentOperations();
 
   // State for add funds modal
   const [showAddFundsModal, setShowAddFundsModal] = useState(false);
   const [fundAmount, setFundAmount] = useState("");
-
-  // State for log viewer and task monitor
-  const [showLogViewer, setShowLogViewer] = useState(false);
-  const [showTaskMonitor, setShowTaskMonitor] = useState(false);
 
   useEffect(() => {
     // Check authentication status
@@ -87,8 +81,7 @@ export default function ProfileScreen() {
   const handleAddFunds = () => {
     // For iOS, we can use Alert.prompt
     if (Platform.OS === 'ios') {
-      // @ts-ignore
-      Alert.alert(
+      Alert.prompt(
           "Add Funds",
           "Enter amount to add to your wallet:",
           [
@@ -127,7 +120,7 @@ export default function ProfileScreen() {
                 }
               }
             }
-          ],
+          ]
       );
     } else {
       // For Android and web, show a modal
@@ -161,98 +154,6 @@ export default function ProfileScreen() {
       Alert.alert("Success", `₱${numAmount} added to your wallet.`);
     } else {
       Alert.alert("Error", "Please enter a valid amount.");
-    }
-  };
-
-  // Run a demo of concurrent operations
-  const runConcurrentDemo = () => {
-    Alert.alert(
-        "Run Concurrent Demo",
-        "This will run multiple operations simultaneously to demonstrate concurrent processing. Check the Task Monitor to see the results.",
-        [
-          {
-            text: "Cancel",
-            style: "cancel"
-          },
-          {
-            text: "Run Demo",
-            onPress: () => {
-              logInfo("Running concurrent operations demo");
-
-              // Show the task monitor
-              setShowTaskMonitor(true);
-
-              // Run multiple operations with different priorities
-              for (let i = 0; i < 5; i++) {
-                // High priority task - fast
-                executeConcurrently(
-                    async () => {
-                      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
-                      return { result: `High priority task ${i} completed` };
-                    },
-                    {
-                      priority: TaskPriority.HIGH,
-                      description: `High priority task ${i}`
-                    }
-                );
-
-                // Normal priority task - medium
-                executeConcurrently(
-                    async () => {
-                      await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 2000));
-                      return { result: `Normal priority task ${i} completed` };
-                    },
-                    {
-                      priority: TaskPriority.NORMAL,
-                      description: `Normal priority task ${i}`
-                    }
-                );
-
-                // Low priority task - slow
-                executeConcurrently(
-                    async () => {
-                      await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 3000));
-                      return { result: `Low priority task ${i} completed` };
-                    },
-                    {
-                      priority: TaskPriority.LOW,
-                      description: `Low priority task ${i}`
-                    }
-                );
-              }
-
-              // Add a failing task
-              executeConcurrently(
-                  async () => {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    throw new Error("This task is designed to fail");
-                  },
-                  {
-                    priority: TaskPriority.NORMAL,
-                    description: "Failing task"
-                  }
-              );
-            }
-          }
-        ]
-    );
-  };
-
-  // Share app logs
-  const shareAppLogs = async () => {
-    try {
-      const { exportLogs } = useLogging();
-      const logsText = exportLogs();
-
-      await Share.share({
-        message: logsText,
-        title: 'Forda GO App Logs',
-      });
-
-      logInfo("App logs shared");
-    } catch (error) {
-      logError("Failed to share app logs", error);
-      Alert.alert("Error", "Failed to share app logs");
     }
   };
 
@@ -327,63 +228,6 @@ export default function ProfileScreen() {
                   <Award size={20} color="#00C853" />
                 </View>
                 <Text style={[styles.menuItemText, { color: "#FFFFFF" }]}>Achievements</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.menuSection}>
-            <Text style={[styles.sectionTitle, { color: "#FFFFFF" }]}>System</Text>
-
-            <TouchableOpacity
-                style={[styles.menuItem, { backgroundColor: "#121212" }]}
-                onPress={() => setShowLogViewer(true)}
-            >
-              <View style={styles.menuItemLeft}>
-                <View style={[styles.menuIconContainer, { backgroundColor: "#00C85320" }]}>
-                  <List size={20} color="#00C853" />
-                </View>
-                <Text style={[styles.menuItemText, { color: "#FFFFFF" }]}>View Logs</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-                style={[styles.menuItem, { backgroundColor: "#121212" }]}
-                onPress={() => setShowTaskMonitor(true)}
-            >
-              <View style={styles.menuItemLeft}>
-                <View style={[styles.menuIconContainer, { backgroundColor: "#00C85320" }]}>
-                  <Activity size={20} color="#00C853" />
-                </View>
-                <Text style={[styles.menuItemText, { color: "#FFFFFF" }]}>Task Monitor</Text>
-                {stats.running > 0 && (
-                    <View style={styles.badgeContainer}>
-                      <Text style={styles.badgeText}>{stats.running}</Text>
-                    </View>
-                )}
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-                style={[styles.menuItem, { backgroundColor: "#121212" }]}
-                onPress={runConcurrentDemo}
-            >
-              <View style={styles.menuItemLeft}>
-                <View style={[styles.menuIconContainer, { backgroundColor: "#00C85320" }]}>
-                  <Activity size={20} color="#00C853" />
-                </View>
-                <Text style={[styles.menuItemText, { color: "#FFFFFF" }]}>Run Concurrent Demo</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-                style={[styles.menuItem, { backgroundColor: "#121212" }]}
-                onPress={shareAppLogs}
-            >
-              <View style={styles.menuItemLeft}>
-                <View style={[styles.menuIconContainer, { backgroundColor: "#00C85320" }]}>
-                  <FileText size={20} color="#00C853" />
-                </View>
-                <Text style={[styles.menuItemText, { color: "#FFFFFF" }]}>Share App Logs</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -471,18 +315,6 @@ export default function ProfileScreen() {
             </View>
           </View>
         </Modal>
-
-        {/* Log Viewer */}
-        <LogViewer
-            visible={showLogViewer}
-            onClose={() => setShowLogViewer(false)}
-        />
-
-        {/* Task Monitor */}
-        <TaskMonitor
-            visible={showTaskMonitor}
-            onClose={() => setShowTaskMonitor(false)}
-        />
 
         <TabBar />
       </SafeAreaView>
@@ -591,18 +423,6 @@ const styles = StyleSheet.create({
   menuItemText: {
     fontSize: 16,
     flex: 1,
-  },
-  badgeContainer: {
-    backgroundColor: "#00C853",
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    marginLeft: 8,
-  },
-  badgeText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "bold",
   },
   logoutButton: {
     marginBottom: 40,
