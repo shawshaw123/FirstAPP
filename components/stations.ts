@@ -3,7 +3,7 @@ import { BikeStation, Bike, RentalHistory } from "@/components";
 export const stations: BikeStation[] = [
   {
     id: "station1",
-    name: "Library building",
+    name: "Library Building",
     availableBikes: 7,
     emptySlots: 8,
     location: {
@@ -14,7 +14,7 @@ export const stations: BikeStation[] = [
   },
   {
     id: "station2",
-    name: "CISC",
+    name: "College of Sciences and Computing",
     availableBikes: 5,
     emptySlots: 10,
     location: {
@@ -25,7 +25,7 @@ export const stations: BikeStation[] = [
   },
   {
     id: "station3",
-    name: "Engineering",
+    name: "College of Engineering",
     availableBikes: 3,
     emptySlots: 12,
     location: {
@@ -33,6 +33,83 @@ export const stations: BikeStation[] = [
       longitude: -122.4170,
     },
     distance: 0.8,
+  },
+  {
+    id: "station4",
+    name: "University Hospital",
+    availableBikes: 6,
+    emptySlots: 9,
+    location: {
+      latitude: 37.7755,
+      longitude: -122.4165,
+    },
+    distance: 1.0,
+  },
+  {
+    id: "station5",
+    name: "College of Arts and Sciences",
+    availableBikes: 4,
+    emptySlots: 11,
+    location: {
+      latitude: 37.7748,
+      longitude: -122.4175,
+    },
+    distance: 0.6,
+  },
+  {
+    id: "station6",
+    name: "College of Education",
+    availableBikes: 2,
+    emptySlots: 13,
+    location: {
+      latitude: 37.7745,
+      longitude: -122.4185,
+    },
+    distance: 0.9,
+  },
+  {
+    id: "station7",
+    name: "College of Veterinary Medicine",
+    availableBikes: 5,
+    emptySlots: 10,
+    location: {
+      latitude: 37.7742,
+      longitude: -122.4190,
+    },
+    distance: 1.2,
+  },
+  {
+    id: "station8",
+    name: "University Market",
+    availableBikes: 8,
+    emptySlots: 7,
+    location: {
+      latitude: 37.7753,
+      longitude: -122.4188,
+    },
+    distance: 0.4,
+  },
+  {
+    id: "station9",
+    name: "College of Nursing",
+    availableBikes: 3,
+    emptySlots: 12,
+    location: {
+      latitude: 37.7747,
+      longitude: -122.4198,
+    },
+    distance: 0.7,
+  },
+  {
+    id: "station10",
+    name: "College of Agriculture",
+    availableBikes: 4,
+    emptySlots: 11,
+    location: {
+      latitude: 37.7740,
+      longitude: -122.4205,
+    },
+    distance: 1.5,
   },
 ];
 
@@ -67,6 +144,36 @@ export const bikes: Bike[] = [
     stationId: "station3",
     available: true,
   },
+  {
+    id: "bike6",
+    name: "FORDA-EBIKE-6",
+    stationId: "station4",
+    available: true,
+  },
+  {
+    id: "bike7",
+    name: "FORDA-EBIKE-7",
+    stationId: "station5",
+    available: true,
+  },
+  {
+    id: "bike8",
+    name: "FORDA-EBIKE-8",
+    stationId: "station6",
+    available: true,
+  },
+  {
+    id: "bike9",
+    name: "FORDA-EBIKE-9",
+    stationId: "station7",
+    available: true,
+  },
+  {
+    id: "bike10",
+    name: "FORDA-EBIKE-10",
+    stationId: "station8",
+    available: true,
+  },
 ];
 
 export const rentalHistory: RentalHistory[] = [
@@ -76,8 +183,8 @@ export const rentalHistory: RentalHistory[] = [
     bikeName: "Bike #1",
     startTime: "2025-04-12T07:30:00",
     endTime: "2025-04-12T08:30:00",
-    startStation: "Station 1",
-    endStation: "Station 2",
+    startStation: "Library Building",
+    endStation: "College of Sciences and Computing",
     duration: "1h 0m",
     cost: 40,
     distance: 2.3,
@@ -88,8 +195,8 @@ export const rentalHistory: RentalHistory[] = [
     bikeName: "Bike #2",
     startTime: "2025-04-13T13:30:00",
     endTime: "2025-04-13T15:50:00",
-    startStation: "Station 2",
-    endStation: "Station 3",
+    startStation: "College of Sciences and Computing",
+    endStation: "College of Engineering",
     duration: "2h 20m",
     cost: 80,
     distance: 5.3,
