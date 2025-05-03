@@ -91,7 +91,7 @@ export default function ProfileScreen() {
 
   const handleAddFunds = () => {
     // For iOS, we can use Alert.prompt
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === 'android') {
       Alert.prompt(
           "Add Funds",
           "Enter amount to add to your wallet:",
@@ -338,6 +338,9 @@ export default function ProfileScreen() {
               iconPosition="left"
           />
         </ScrollView>
+
+
+
 
         {/* Add Funds Modal */}
         <Modal
@@ -794,15 +797,26 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    // Add these to lock positioning:
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    // Block Android system UI interactions:
+    elevation: 999, // Higher than any other element
+    zIndex: 999,
   },
   modalContainer: {
-    width: '80%', // Adjust width as needed
-    padding: 20,
     backgroundColor: '#121212',
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center', // Ensure content is centered
+    width: '90%',
+    maxHeight: '80%', // Prevents overflow
+    borderRadius: 12,
+    padding: 20,
+    // Add these for Android stability:
+    elevation: 1000, // Ensures modal stays on top
+    zIndex: 1000,
   },
   modalContent: {
     width: '80%',
