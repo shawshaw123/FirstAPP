@@ -1,285 +1,190 @@
-import { BikeStation, Bike } from "@/components";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BikeStation, Bike, RentalHistory, ActiveRental } from '@/components';
+import { stations as mockStations, bikes as mockBikes, rentalHistory as mockRentalHistory } from '@/components/stations';
 
-// Mock data for stations
-const MOCK_STATIONS: BikeStation[] = [
-  {
-    id: "station1",
-    name: "Main Campus Station",
-    latitude: 14.6042,
-    longitude: 120.9822,
-    availableBikes: 8,
-    emptySlots: 4,
-    distance: 0.2,
-    isActive: true,
-  },
-  {
-    id: "station2",
-    name: "Engineering Building",
-    latitude: 14.6052,
-    longitude: 120.9832,
-    availableBikes: 3,
-    emptySlots: 9,
-    distance: 0.5,
-    isActive: true,
-  },
-  {
-    id: "station3",
-    name: "Student Center",
-    latitude: 14.6062,
-    longitude: 120.9842,
-    availableBikes: 0,
-    emptySlots: 12,
-    distance: 0.8,
-    isActive: true,
-  },
-  {
-    id: "station4",
-    name: "Library Station",
-    latitude: 14.6072,
-    longitude: 120.9852,
-    availableBikes: 5,
-    emptySlots: 7,
-    distance: 1.2,
-    isActive: true,
-  },
-  {
-    id: "station5",
-    name: "Sports Complex",
-    latitude: 14.6082,
-    longitude: 120.9862,
-    availableBikes: 10,
-    emptySlots: 2,
-    distance: 1.5,
-    isActive: true,
-  },
-];
+// Storage keys
+const ACTIVE_RENTAL_KEY = 'active_rental';
+const RENTAL_HISTORY_KEY = 'rental_history';
 
-// Mock data for bikes
-const MOCK_BIKES: Bike[] = [
-  {
-    id: "bike1",
-    name: "Mountain Bike A",
-    stationId: "station1",
-    isAvailable: true,
-    isElectric: false,
-    batteryLevel: 0,
-    pricePerHour: 20,
-  },
-  {
-    id: "bike2",
-    name: "Electric Bike B",
-    stationId: "station1",
-    isAvailable: true,
-    isElectric: true,
-    batteryLevel: 85,
-    pricePerHour: 30,
-  },
-  {
-    id: "bike3",
-    name: "City Bike C",
-    stationId: "station1",
-    isAvailable: true,
-    isElectric: false,
-    batteryLevel: 0,
-    pricePerHour: 20,
-  },
-  {
-    id: "bike4",
-    name: "Electric Bike D",
-    stationId: "station1",
-    isAvailable: true,
-    isElectric: true,
-    batteryLevel: 65,
-    pricePerHour: 30,
-  },
-  {
-    id: "bike5",
-    name: "Mountain Bike E",
-    stationId: "station1",
-    isAvailable: true,
-    isElectric: false,
-    batteryLevel: 0,
-    pricePerHour: 20,
-  },
-  {
-    id: "bike6",
-    name: "Electric Bike F",
-    stationId: "station1",
-    isAvailable: true,
-    isElectric: true,
-    batteryLevel: 92,
-    pricePerHour: 30,
-  },
-  {
-    id: "bike7",
-    name: "City Bike G",
-    stationId: "station1",
-    isAvailable: true,
-    isElectric: false,
-    batteryLevel: 0,
-    pricePerHour: 20,
-  },
-  {
-    id: "bike8",
-    name: "Electric Bike H",
-    stationId: "station1",
-    isAvailable: true,
-    isElectric: true,
-    batteryLevel: 45,
-    pricePerHour: 30,
-  },
-  {
-    id: "bike9",
-    name: "Mountain Bike I",
-    stationId: "station2",
-    isAvailable: true,
-    isElectric: false,
-    batteryLevel: 0,
-    pricePerHour: 20,
-  },
-  {
-    id: "bike10",
-    name: "Electric Bike J",
-    stationId: "station2",
-    isAvailable: true,
-    isElectric: true,
-    batteryLevel: 78,
-    pricePerHour: 30,
-  },
-  {
-    id: "bike11",
-    name: "City Bike K",
-    stationId: "station2",
-    isAvailable: true,
-    isElectric: false,
-    batteryLevel: 0,
-    pricePerHour: 20,
-  },
-  {
-    id: "bike12",
-    name: "Electric Bike L",
-    stationId: "station4",
-    isAvailable: true,
-    isElectric: true,
-    batteryLevel: 88,
-    pricePerHour: 30,
-  },
-  {
-    id: "bike13",
-    name: "Mountain Bike M",
-    stationId: "station4",
-    isAvailable: true,
-    isElectric: false,
-    batteryLevel: 0,
-    pricePerHour: 20,
-  },
-  {
-    id: "bike14",
-    name: "Electric Bike N",
-    stationId: "station4",
-    isAvailable: true,
-    isElectric: true,
-    batteryLevel: 55,
-    pricePerHour: 30,
-  },
-  {
-    id: "bike15",
-    name: "City Bike O",
-    stationId: "station4",
-    isAvailable: true,
-    isElectric: false,
-    batteryLevel: 0,
-    pricePerHour: 20,
-  },
-  {
-    id: "bike16",
-    name: "Electric Bike P",
-    stationId: "station4",
-    isAvailable: true,
-    isElectric: true,
-    batteryLevel: 72,
-    pricePerHour: 30,
-  },
-  {
-    id: "bike17",
-    name: "Mountain Bike Q",
-    stationId: "station5",
-    isAvailable: true,
-    isElectric: false,
-    batteryLevel: 0,
-    pricePerHour: 20,
-  },
-  {
-    id: "bike18",
-    name: "Electric Bike R",
-    stationId: "station5",
-    isAvailable: true,
-    isElectric: true,
-    batteryLevel: 95,
-    pricePerHour: 30,
-  },
-  {
-    id: "bike19",
-    name: "City Bike S",
-    stationId: "station5",
-    isAvailable: true,
-    isElectric: false,
-    batteryLevel: 0,
-    pricePerHour: 20,
-  },
-  {
-    id: "bike20",
-    name: "Electric Bike T",
-    stationId: "station5",
-    isAvailable: true,
-    isElectric: true,
-    batteryLevel: 82,
-    pricePerHour: 30,
-  },
-];
-
-// Get all stations
+// Get all bike stations
 export const getStations = async (): Promise<BikeStation[]> => {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1000));
 
-  return MOCK_STATIONS;
+  return [...mockStations];
 };
 
 // Get station by ID
-export const getStationById = async (stationId: string): Promise<BikeStation> => {
+export const getStationById = async (stationId: string): Promise<BikeStation | null> => {
   // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 800));
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
-  const station = MOCK_STATIONS.find(station => station.id === stationId);
-
-  if (!station) {
-    throw new Error("Station not found");
-  }
-
-  return station;
+  const station = mockStations.find(station => station.id === stationId);
+  return station ? { ...station } : null;
 };
 
 // Get bikes by station ID
 export const getBikesByStation = async (stationId: string): Promise<Bike[]> => {
   // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1200));
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
-  const bikes = MOCK_BIKES.filter(bike => bike.stationId === stationId && bike.isAvailable);
-
-  return bikes;
+  const stationBikes = mockBikes.filter(bike => bike.stationId === stationId && bike.available);
+  return stationBikes.map(bike => ({ ...bike }));
 };
 
-// Get bike by ID
-export const getBikeById = async (bikeId: string): Promise<Bike> => {
+// Get active rental from storage
+const getStoredActiveRental = async (): Promise<ActiveRental | null> => {
+  try {
+    const rentalData = await AsyncStorage.getItem(ACTIVE_RENTAL_KEY);
+    return rentalData ? JSON.parse(rentalData) : null;
+  } catch (error) {
+    console.error('Error getting active rental:', error);
+    return null;
+  }
+};
+
+// Save active rental to storage
+const saveActiveRental = async (rental: ActiveRental | null): Promise<void> => {
+  try {
+    if (rental) {
+      await AsyncStorage.setItem(ACTIVE_RENTAL_KEY, JSON.stringify(rental));
+    } else {
+      await AsyncStorage.removeItem(ACTIVE_RENTAL_KEY);
+    }
+  } catch (error) {
+    console.error('Error saving active rental:', error);
+  }
+};
+
+// Get rental history from storage
+const getStoredRentalHistory = async (): Promise<RentalHistory[]> => {
+  try {
+    const historyData = await AsyncStorage.getItem(RENTAL_HISTORY_KEY);
+    return historyData ? JSON.parse(historyData) : [...mockRentalHistory];
+  } catch (error) {
+    console.error('Error getting rental history:', error);
+    return [...mockRentalHistory];
+  }
+};
+
+// Save rental history to storage
+const saveRentalHistory = async (history: RentalHistory[]): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(RENTAL_HISTORY_KEY, JSON.stringify(history));
+  } catch (error) {
+    console.error('Error saving rental history:', error);
+  }
+};
+
+// Start a bike rental
+export const startRental = async (
+    userId: string,
+    bikeId: string,
+    bikeName: string,
+    stationId: string,
+    stationName: string
+): Promise<ActiveRental> => {
   // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
-  const bike = MOCK_BIKES.find(bike => bike.id === bikeId);
+  // Create active rental
+  const startTime = new Date().toISOString();
+  const rental: ActiveRental = {
+    id: `rental${Date.now()}`,
+    bikeId,
+    bikeName,
+    startTime,
+    startStation: stationName,
+    stationId,
+    currentCost: 0
+  };
 
-  if (!bike) {
-    throw new Error("Bike not found");
+  // Save to storage
+  await saveActiveRental(rental);
+
+  return rental;
+};
+
+// End a bike rental
+export const endRental = async (
+    userId: string,
+    activeRentalId: string,
+    endStationId: string
+): Promise<RentalHistory> => {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  // Get active rental
+  const activeRental = await getStoredActiveRental();
+
+  if (!activeRental) {
+    throw new Error('No active rental found');
   }
 
-  return bike;
+  // Get end station
+  const endStation = mockStations.find(station => station.id === endStationId);
+
+  if (!endStation) {
+    throw new Error('End station not found');
+  }
+
+  // Calculate rental details
+  const endTime = new Date().toISOString();
+  const startDate = new Date(activeRental.startTime);
+  const endDate = new Date(endTime);
+
+  // Calculate duration in minutes
+  const durationMs = endDate.getTime() - startDate.getTime();
+  const durationMinutes = Math.floor(durationMs / (1000 * 60));
+  const hours = Math.floor(durationMinutes / 60);
+  const minutes = durationMinutes % 60;
+  const durationStr = `${hours}h ${minutes}m`;
+
+  // Calculate cost based on duration
+  const cost = Math.max(20, Math.ceil(durationMinutes / 60) * 20);
+
+  // Calculate random distance between 1-10 km
+  const distance = parseFloat((Math.random() * 9 + 1).toFixed(1));
+
+  // Create rental history record
+  const rentalHistory: RentalHistory = {
+    id: `history${Date.now()}`,
+    bikeId: activeRental.bikeId,
+    bikeName: activeRental.bikeName,
+    startTime: activeRental.startTime,
+    endTime,
+    startStation: activeRental.startStation,
+    endStation: endStation.name,
+    duration: durationStr,
+    cost,
+    distance,
+  };
+
+  // Update rental history
+  const history = await getStoredRentalHistory();
+  const updatedHistory = [rentalHistory, ...history];
+  await saveRentalHistory(updatedHistory);
+
+  // Clear active rental
+  await saveActiveRental(null);
+
+  return rentalHistory;
+};
+
+// Get rental history for a user
+export const getRentalHistory = async (userId: string): Promise<RentalHistory[]> => {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  // Get from storage
+  return await getStoredRentalHistory();
+};
+
+// Get active rental for a user
+export const getActiveRental = async (userId: string): Promise<ActiveRental | null> => {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  // Get from storage
+  return await getStoredActiveRental();
 };
