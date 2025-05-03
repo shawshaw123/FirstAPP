@@ -7,8 +7,7 @@ import {
   Animated,
   Easing,
   Dimensions,
-  AppState,
-  Platform, StatusBar
+  AppState
 } from "react-native";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -19,7 +18,7 @@ import { useTheme } from "@/components/theme-context";
 import { useLogging } from "@/hooks/use-logging";
 import { backgroundTaskManager, TaskType } from "@/services/background-task";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -34,6 +33,7 @@ export default function WelcomeScreen() {
   const bikePosition = useRef(new Animated.Value(-width)).current;
 
   useEffect(() => {
+    // Log screen view
     logInfo("Welcome screen viewed");
 
     // Start animations
@@ -60,6 +60,7 @@ export default function WelcomeScreen() {
       }),
     ]).start();
 
+    // Check authentication after animations
     const checkAuth = async () => {
       if (isAuthenticated) {
         logInfo("User already authenticated, redirecting to map");
@@ -71,10 +72,13 @@ export default function WelcomeScreen() {
 
     checkAuth();
 
+    // Set up app state change listener for background processing demo
     const subscription = AppState.addEventListener("change", nextAppState => {
       logInfo("App state changed", { from: appState.current, to: nextAppState });
 
+      // If app is going to background, schedule a background task
       if (appState.current === "active" && nextAppState.match(/inactive|background/)) {
+        // Schedule a demo background task
         backgroundTaskManager.scheduleTask(TaskType.DATA_SYNC, {
           message: "Background task scheduled when app went to background",
           timestamp: new Date().toISOString()
@@ -84,7 +88,9 @@ export default function WelcomeScreen() {
       appState.current = nextAppState;
     });
 
-    return () => subscription.remove();
+    return () => {
+      subscription.remove();
+    };
   }, [isAuthenticated]);
 
   const handleGetStarted = () => {
@@ -122,10 +128,8 @@ export default function WelcomeScreen() {
   return (
       <View style={styles.container}>
         <LinearGradient
-            colors={["#000000", "#00C85310"]}
+            colors={["#000000", "#00C85310"] as const}
             style={styles.gradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
         >
           <SafeAreaView style={styles.safeArea}>
             <View style={styles.content}>
@@ -147,7 +151,7 @@ export default function WelcomeScreen() {
                       ],
                     }}
                 >
-                  <Bike size={Platform.OS === 'android' ? 72 : 80} color="#00C853" />
+                  <Bike size={80} color="#00C853" />
                 </Animated.View>
               </Animated.View>
 
@@ -155,6 +159,8 @@ export default function WelcomeScreen() {
                   style={{
                     opacity: fadeAnim,
                     transform: [{ translateY: slideAnim }],
+                    width: '100%',
+                    alignItems: 'center'
                   }}
               >
                 <Text style={[styles.title, { color: "#FFFFFF" }]}>Forda GO</Text>
@@ -184,18 +190,24 @@ export default function WelcomeScreen() {
                     },
                   ]}
               >
-                {[1, 2, 3].map((num) => (
-                    <View key={num} style={styles.featureRow}>
-                      <View style={[styles.featureNumber, { backgroundColor: "#00C85320" }]}>
-                        <Text style={[styles.featureNumberText, { color: "#00C853" }]}>{num}</Text>
-                      </View>
-                      <Text style={[styles.featureText, { color: "#FFFFFF" }]}>
-                        {num === 1 && "Find available bikes near you"}
-                        {num === 2 && "Unlock with QR code"}
-                        {num === 3 && "Track your rides and save time"}
-                      </Text>
-                    </View>
-                ))}
+                <View style={styles.featureRow}>
+                  <View style={[styles.featureNumber, { backgroundColor: "#00C85320" }]}>
+                    <Text style={[styles.featureNumberText, { color: "#00C853" }]}>1</Text>
+                  </View>
+                  <Text style={[styles.featureText, { color: "#FFFFFF" }]}>Find available bikes near you</Text>
+                </View>
+                <View style={styles.featureRow}>
+                  <View style={[styles.featureNumber, { backgroundColor: "#00C85320" }]}>
+                    <Text style={[styles.featureNumberText, { color: "#00C853" }]}>2</Text>
+                  </View>
+                  <Text style={[styles.featureText, { color: "#FFFFFF" }]}>Unlock with QR code</Text>
+                </View>
+                <View style={styles.featureRow}>
+                  <View style={[styles.featureNumber, { backgroundColor: "#00C85320" }]}>
+                    <Text style={[styles.featureNumberText, { color: "#00C853" }]}>3</Text>
+                  </View>
+                  <Text style={[styles.featureText, { color: "#FFFFFF" }]}>Track your rides and save time</Text>
+                </View>
               </Animated.View>
             </View>
 
@@ -232,7 +244,6 @@ const styles = StyleSheet.create({
   },
   gradient: {
     flex: 1,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   safeArea: {
     flex: 1,
@@ -240,74 +251,84 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'android' ? 16 : 0,
+    paddingTop: 60,
   },
   logoContainer: {
-    width: Platform.OS === 'android' ? 100 : 120,
-    height: Platform.OS === 'android' ? 100 : 120,
-    borderRadius: 60,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 24,
+    marginBottom: 36,
     overflow: "hidden",
+    elevation: 4,
   },
   title: {
-    fontSize: Platform.OS === 'android' ? 28 : 32,
+    fontSize: 36,
     fontWeight: "bold",
     marginBottom: 8,
     textAlign: "center",
-    includeFontPadding: false, // Android specific
+    letterSpacing: 1,
   },
   subtitle: {
-    fontSize: Platform.OS === 'android' ? 16 : 18,
-    marginBottom: Platform.OS === 'android' ? 24 : 32,
+    fontSize: 18,
+    marginBottom: 36,
     textAlign: "center",
-    includeFontPadding: false,
+    letterSpacing: 0.5,
   },
   descriptionContainer: {
-    marginBottom: Platform.OS === 'android' ? 24 : 32,
+    marginBottom: 36,
+    width: '100%',
+    maxWidth: 320,
   },
   description: {
-    fontSize: Platform.OS === 'android' ? 14 : 16,
+    fontSize: 16,
     textAlign: "center",
-    lineHeight: Platform.OS === 'android' ? 20 : 24,
-    includeFontPadding: false,
+    lineHeight: 24,
+    letterSpacing: 0.3,
   },
   featuresContainer: {
     width: "100%",
-    gap: Platform.OS === 'android' ? 12 : 16,
+    gap: 20,
+    marginTop: 8,
   },
   featureRow: {
     flexDirection: "row",
     alignItems: "center",
+    paddingVertical: 4,
   },
   featureNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: 16,
+    elevation: 2,
   },
   featureNumberText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
   },
   featureText: {
-    fontSize: Platform.OS === 'android' ? 14 : 16,
+    fontSize: 16,
     flex: 1,
-    includeFontPadding: false,
+    letterSpacing: 0.2,
+    lineHeight: 22,
   },
   footer: {
     paddingHorizontal: 24,
-    paddingBottom: Platform.OS === 'android' ? 32 : 40,
+    paddingBottom: 40,
+    paddingTop: 20,
     alignItems: "center",
+    width: '100%',
   },
   button: {
     width: "100%",
-    marginBottom: 16,
+    marginBottom: 24,
+    elevation: 4,
   },
   indicator: {
     width: 40,

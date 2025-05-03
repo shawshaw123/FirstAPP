@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Dimensions,
   Platform,
+  StatusBar,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/components/theme-context";
@@ -21,7 +22,7 @@ import { Search, MapPin, QrCode, Navigation } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLogging } from "@/hooks/use-logging";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 export default function MapScreen() {
   const router = useRouter();
@@ -70,7 +71,7 @@ export default function MapScreen() {
 
   const handleStationPress = (stationId: string) => {
     logInfo("User selected station", { stationId });
-    router.push(`/station /${stationId}`);
+    router.push(`/station/${stationId}`); // Fixed the space in the URL path
   };
 
   const handleFindNearby = () => {
@@ -146,10 +147,15 @@ export default function MapScreen() {
 
   return (
       <SafeAreaView style={[styles.container, { backgroundColor: "#000000" }]}>
+        <StatusBar backgroundColor="#000000" barStyle="light-content" />
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             <Text style={[styles.logo, { color: "#00C853" }]}>Forda GO</Text>
-            <TouchableOpacity style={styles.qrButton} onPress={handleScanQR}>
+            <TouchableOpacity 
+                style={styles.qrButton} 
+                onPress={handleScanQR}
+                activeOpacity={0.7}
+            >
               <QrCode size={24} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
@@ -174,6 +180,9 @@ export default function MapScreen() {
           {isLoading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#00C853" />
+                <Text style={[styles.loadingText, { color: "#AAAAAA" }]}>
+                  Finding stations...
+                </Text>
               </View>
           ) : error ? (
               <View style={styles.errorContainer}>
@@ -181,6 +190,7 @@ export default function MapScreen() {
                 <TouchableOpacity
                     style={[styles.retryButton, { backgroundColor: "#00C853" }]}
                     onPress={loadStations}
+                    activeOpacity={0.7}
                 >
                   <Text style={[styles.retryText, { color: "#FFFFFF" }]}>Retry</Text>
                 </TouchableOpacity>
@@ -220,9 +230,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#000000",
   },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'android' ? 16 : 8,
     paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#121212",
   },
   logoContainer: {
     flexDirection: "row",
@@ -231,33 +243,40 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   logo: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
+    letterSpacing: 0.5,
   },
   qrButton: {
-    padding: 8,
+    padding: 10,
+    backgroundColor: "#121212",
+    borderRadius: 12,
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 25,
+    borderRadius: 12,
     paddingHorizontal: 16,
     height: 50,
+    elevation: 2,
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: 12,
   },
   searchInput: {
     flex: 1,
     height: 50,
     fontSize: 16,
+    fontWeight: "400",
+    letterSpacing: 0.2,
   },
   mapPreview: {
-    height: 200,
+    height: 220,
     borderRadius: 16,
-    marginHorizontal: 16,
-    marginBottom: 24,
+    marginHorizontal: 20,
+    marginVertical: 20,
     overflow: "hidden",
+    elevation: 4,
   },
   mapGradient: {
     flex: 1,
@@ -284,32 +303,34 @@ const styles = StyleSheet.create({
   },
   stationMarker: {
     position: "absolute",
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
     borderColor: "#FFFFFF",
+    elevation: 3,
   },
   stationMarkerText: {
     color: "#FFFFFF",
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: "bold",
   },
   userMarker: {
     position: "absolute",
     left: "50%",
     top: "50%",
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    marginLeft: -15,
-    marginTop: -15,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginLeft: -18,
+    marginTop: -18,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
     borderColor: "#FFFFFF",
+    elevation: 4,
   },
   findNearbyButton: {
     position: "absolute",
@@ -320,51 +341,70 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 25,
+    elevation: 3,
   },
   findNearbyText: {
     marginLeft: 8,
     fontSize: 16,
+    fontWeight: "500",
   },
   stationsContainer: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 70, // Space for TabBar
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
     marginBottom: 16,
+    letterSpacing: 0.5,
   },
   stationsList: {
-    paddingBottom: 16,
+    paddingBottom: 24,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingBottom: 80, // Prevents overlap with TabBar
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontWeight: "500",
   },
   errorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 24,
+    paddingBottom: 80, // Prevents overlap with TabBar
   },
   errorText: {
     textAlign: "center",
-    marginBottom: 16,
+    marginBottom: 20,
+    fontSize: 16,
+    lineHeight: 24,
   },
   retryButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
+    paddingHorizontal: 32,
+    paddingVertical: 14,
     borderRadius: 25,
+    elevation: 3,
   },
   retryText: {
     fontWeight: "600",
+    fontSize: 16,
   },
   emptyContainer: {
-    padding: 24,
+    padding: 32,
     alignItems: "center",
+    justifyContent: "center",
+    height: 200,
   },
   emptyText: {
     textAlign: "center",
+    fontSize: 16,
+    lineHeight: 24,
   },
 });

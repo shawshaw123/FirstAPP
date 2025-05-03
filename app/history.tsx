@@ -69,7 +69,7 @@ export default function HistoryScreen() {
                     renderItem={({ item }) => <RentalHistoryCard rental={item} />}
                     contentContainerStyle={[
                       styles.historyList,
-                      history.length === 0 && { flex: 1 }
+                      history.length === 0 && styles.emptyListContainer
                     ]}
                     ListEmptyComponent={
                       <View style={styles.emptyContainer}>
@@ -97,20 +97,23 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingBottom: 60, // Space for TabBar
+    paddingBottom: 70, // Increased space for TabBar
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 20,
     paddingBottom: 16,
-    marginBottom: 8,
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#222222",
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
+    letterSpacing: 0.5,
   },
   loadingContainer: {
     flex: 1,
@@ -121,19 +124,28 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
+    fontWeight: "500",
   },
   historyList: {
     paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingBottom: 20,
+    paddingTop: 8,
   },
-  emptyContainer: {
+  emptyListContainer: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center",
+  },
+  emptyContainer: {
     padding: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    height: '100%',
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 18,
     textAlign: "center",
+    fontWeight: "500",
+    color: "#AAAAAA",
+    lineHeight: 24,
   },
 });

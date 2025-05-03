@@ -8,6 +8,8 @@ import {
   TextStyle,
   Animated,
   Easing,
+  Platform,
+  View as RNView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "@/components/theme-context";
@@ -199,6 +201,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
+    elevation: Platform.OS === 'android' ? 3 : 0,
+    shadowColor: Platform.OS === 'ios' ? "#000" : "transparent",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   contentContainer: {
     flexDirection: "row",
@@ -227,14 +234,17 @@ const styles = StyleSheet.create({
   smallButton: {
     paddingVertical: 8,
     paddingHorizontal: 16,
+    minHeight: Platform.OS === 'android' ? 40 : 36,
   },
   mediumButton: {
     paddingVertical: 12,
     paddingHorizontal: 24,
+    minHeight: Platform.OS === 'android' ? 48 : 44,
   },
   largeButton: {
     paddingVertical: 16,
     paddingHorizontal: 32,
+    minHeight: Platform.OS === 'android' ? 56 : 52,
   },
   disabledButton: {
     opacity: 0.5,
@@ -243,26 +253,31 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontWeight: "600",
     fontSize: 16,
+    letterSpacing: 0.5,
   },
   secondaryText: {
     color: "#00C853",
     fontWeight: "600",
     fontSize: 16,
+    letterSpacing: 0.5,
   },
   outlineText: {
     color: "#FFFFFF",
     fontWeight: "600",
     fontSize: 16,
+    letterSpacing: 0.5,
   },
   textButtonText: {
     color: "#00C853",
     fontWeight: "600",
     fontSize: 16,
+    letterSpacing: 0.5,
   },
   gradientText: {
     color: "#FFFFFF",
     fontWeight: "600",
     fontSize: 16,
+    letterSpacing: 0.5,
   },
   iconLeft: {
     marginRight: 8,

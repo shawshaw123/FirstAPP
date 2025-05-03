@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions } from "react-native";
 import { BikeStation } from "@/components";
 import { useTheme } from "@/components/theme-context";
 import { ChevronRight, Bike, MapPin } from "lucide-react-native";
@@ -62,6 +62,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
+    elevation: Platform.OS === 'android' ? 3 : 0,
+    shadowColor: Platform.OS === 'ios' ? "#000" : "transparent",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   leftContent: {
     flexDirection: "row",
@@ -75,6 +80,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
+    elevation: Platform.OS === 'android' ? 2 : 0,
   },
   textContainer: {
     flex: 1,
@@ -83,6 +89,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 4,
+    letterSpacing: 0.3,
   },
   detailsContainer: {
     flexDirection: "row",
@@ -101,6 +108,7 @@ const styles = StyleSheet.create({
   },
   availabilityText: {
     fontSize: 14,
+    letterSpacing: 0.2,
   },
   distanceContainer: {
     flexDirection: "row",
@@ -109,6 +117,7 @@ const styles = StyleSheet.create({
   distanceText: {
     fontSize: 12,
     marginLeft: 4,
+    letterSpacing: 0.2,
   },
   rightContent: {
     padding: 8,

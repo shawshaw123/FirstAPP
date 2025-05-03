@@ -1,138 +1,115 @@
-import React, { useState } from "react";
-import {
-    View,
-    TextInput,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    ViewStyle,
-    TextStyle,
-} from "react-native";
+import React, { useEffect, useRef } from "react";
+import { View, StyleSheet, Animated, Easing, ViewStyle, Platform } from "react-native";
 import { useTheme } from "@/components/theme-context";
-import { Eye, EyeOff, Mail, User, Lock, CreditCard } from "lucide-react-native";
 
-interface InputProps {
-    value: string;
-    onChangeText: (text: string) => void;
-    placeholder: string;
-    secureTextEntry?: boolean;
-    autoCapitalize?: "none" | "sentences" | "words" | "characters";
-    keyboardType?: "default" | "email-address" | "numeric" | "phone-pad";
-    icon?: "mail" | "user" | "lock" | "card";
-    error?: string;
-    containerStyle?: ViewStyle;
-    inputStyle?: TextStyle;
-    autoFocus?: boolean;
+interface PulseAnimationProps {
+  size?: number;
+  color?: string;
+  duration?: number;
+  pulseMaxSize?: number;
+  style?: ViewStyle;
+  isActive?: boolean;
 }
 
-export default function Input({
-                                  value,
-                                  onChangeText,
-                                  placeholder,
-                                  secureTextEntry = false,
-                                  autoCapitalize = "none",
-                                  keyboardType = "default",
-                                  icon,
-                                  error,
-                                  containerStyle,
-                                  inputStyle,
-                                  autoFocus = false,
-                              }: InputProps) {
-    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-    const { colors } = useTheme();
+export default function PulseAnimation({
+  size = 50,
+  color,
+  duration = 1500,
+  pulseMaxSize = 100,
+  style,
+  isActive = true,
+}: PulseAnimationProps) {
+  const { colors } = useTheme();
+  const pulseColor = color || colors.primary;
+  
+  // Animation values
+  const pulseAnim = useRef(new Animated.Value(0)).current;
+  const opacityAnim = useRef(new Animated.Value(1)).current;
 
-    const togglePasswordVisibility = () => {
-        setIsPasswordVisible(!isPasswordVisible);
+  // Start animation
+  useEffect(() => {
+    let animationLoop: Animated.CompositeAnimation;
+
+    if (isActive) {
+      animationLoop = Animated.loop(
+        Animated.parallel([
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: duration,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: Platform.OS === 'android',
+          }),
+          Animated.timing(opacityAnim, {
+            toValue: 0,
+            duration: duration,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: Platform.OS === 'android',
+          }),
+        ])
+      );
+
+      animationLoop.start();
+    }
+
+    return () => {
+      if (animationLoop) {
+        animationLoop.stop();
+      }
     };
+  }, [pulseAnim, opacityAnim, duration, isActive]);
 
-    const renderIcon = () => {
-        switch (icon) {
-            case "mail":
-                return <Mail size={20} color={colors.textSecondary} />;
-            case "user":
-                return <User size={20} color={colors.textSecondary} />;
-            case "lock":
-                return <Lock size={20} color={colors.textSecondary} />;
-            case "card":
-                return <CreditCard size={20} color={colors.textSecondary} />;
-            default:
-                return null;
-        }
-    };
+  // Calculate animated values
+  const pulseScale = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, pulseMaxSize / size],
+  });
 
-    return (
-        <View style={[styles.container, containerStyle]}>
-            <View
-                style={[
-                    styles.inputContainer,
-                    { backgroundColor: colors.cardBackground, borderColor: colors.border },
-                    error ? { borderColor: colors.error } : null,
-                ]}
-            >
-                {icon && <View style={styles.iconContainer}>{renderIcon()}</View>}
-                <TextInput
-                    value={value}
-                    onChangeText={onChangeText}
-                    placeholder={placeholder}
-                    placeholderTextColor={colors.textSecondary}
-                    secureTextEntry={secureTextEntry && !isPasswordVisible}
-                    autoCapitalize={autoCapitalize}
-                    keyboardType={keyboardType}
-                    style={[
-                        styles.input,
-                        { color: colors.text },
-                        icon ? styles.inputWithIcon : null,
-                        inputStyle
-                    ]}
-                    autoFocus={autoFocus}
-                />
-                {secureTextEntry && (
-                    <TouchableOpacity
-                        onPress={togglePasswordVisibility}
-                        style={styles.eyeIcon}
-                    >
-                        {isPasswordVisible ? (
-                            <EyeOff size={20} color={colors.textSecondary} />
-                        ) : (
-                            <Eye size={20} color={colors.textSecondary} />
-                        )}
-                    </TouchableOpacity>
-                )}
-            </View>
-            {error ? <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text> : null}
-        </View>
-    );
+  return (
+    <View style={[styles.container, style]}>
+      <View
+        style={[
+          styles.pulse,
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: pulseColor,
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.pulseRing,
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            borderColor: pulseColor,
+            opacity: opacityAnim,
+            transform: [{ scale: pulseScale }],
+          },
+        ]}
+      />
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        marginBottom: 16,
-        width: "100%",
-    },
-    inputContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        borderRadius: 25,
-        borderWidth: 1,
-        paddingHorizontal: 16,
-    },
-    iconContainer: {
-        marginRight: 10,
-    },
-    input: {
-        flex: 1,
-        height: 50,
-        fontSize: 16,
-    },
-    inputWithIcon: {
-        paddingLeft: 0,
-    },
-    eyeIcon: {
-        padding: 10,
-    },
-    errorText: {
-        fontSize: 12,
-        marginTop: 4,
-        marginLeft: 16,
-    },
+  container: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pulse: {
+    position: "absolute",
+    elevation: Platform.OS === 'android' ? 4 : 0,
+    shadowColor: Platform.OS === 'ios' ? "#000" : "transparent",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+  pulseRing: {
+    position: "absolute",
+    borderWidth: 3,
+    elevation: Platform.OS === 'android' ? 0 : undefined,
+  },
 });

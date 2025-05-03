@@ -16,6 +16,7 @@ export interface BikeStation {
     longitude: number;
   };
   distance?: number;
+  isActive?: boolean; // Add status flag for Android UI state management
 }
 
 export interface Bike {
@@ -23,6 +24,10 @@ export interface Bike {
   name: string;
   stationId: string;
   available: boolean;
+  pricePerHour: number;
+  isElectric: boolean; // Changed from 'any' to 'boolean' for type safety
+  batteryLevel: number;
+  lastMaintenance?: string; // Optional maintenance date for UI display
 }
 
 export interface RentalHistory {
@@ -36,6 +41,7 @@ export interface RentalHistory {
   duration: string;
   cost: number;
   distance: number;
+  completed?: boolean; // Flag for UI state management
 }
 
 export interface ActiveRental {
@@ -46,4 +52,24 @@ export interface ActiveRental {
   startStation: string;
   stationId: string;
   currentCost: number;
+  isBackgroundTracking?: boolean; // Flag for Android background service status
+}
+
+// New interface for responsive UI dimensions
+export interface UIConstants {
+  padding: {
+    small: number;
+    medium: number;
+    large: number;
+  };
+  borderRadius: {
+    small: number;
+    medium: number;
+    large: number;
+  };
+  elevation: {
+    small: number;
+    medium: number;
+    large: number;
+  };
 }

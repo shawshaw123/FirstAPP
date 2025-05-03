@@ -11,6 +11,8 @@ import {
   Modal,
   TextInput,
   Platform,
+  StatusBar,
+  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import TabBar from "@/components/TabBar";
@@ -29,6 +31,8 @@ import { useBackgroundRental } from "@/hooks/use-background-rental";
 import { useLogging } from "@/hooks/use-logging";
 import { useConcurrentOperations } from "@/hooks/use-concurrent-operations";
 import { TaskPriority } from "@/services/concurrent-queue";
+
+const { width } = Dimensions.get('window');
 
 export default function RentalsScreen() {
   const router = useRouter();
@@ -318,13 +322,14 @@ export default function RentalsScreen() {
 
   if (isLoading && !activeRental) {
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: "#000000" }]}>
+        <SafeAreaView style={styles.container}>
+          <StatusBar backgroundColor="#000000" barStyle="light-content" />
           <View style={styles.header}>
-            <Text style={[styles.title, { color: "#FFFFFF", fontWeight: "bold" }]}>BIKE RENT</Text>
+            <Text style={styles.title}>BIKE RENT</Text>
           </View>
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#00C853" />
-            <Text style={[styles.loadingText, { color: "#FFFFFF" }]}>Loading rental information...</Text>
+            <Text style={styles.loadingText}>Loading rental information...</Text>
           </View>
           <TabBar />
         </SafeAreaView>
@@ -332,14 +337,18 @@ export default function RentalsScreen() {
   }
 
   return (
-      <SafeAreaView style={[styles.container, { backgroundColor: "#000000" }]}>
+      <SafeAreaView style={styles.container}>
         {showConfetti && <ConfettiEffect />}
 
         <View style={styles.header}>
-          <Text style={[styles.title, { color: "#FFFFFF", fontWeight: "bold" }]}>BIKE RENT</Text>
+          <Text style={styles.title}>BIKE RENT</Text>
         </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          showsVerticalScrollIndicator={false}
+        >
           <WalletBalance />
 
           {activeRental ? (
@@ -691,16 +700,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#000000",
   },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingTop: Platform.OS === "android" ? 16 : 8,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#121212",
   },
   title: {
     fontSize: 24,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    letterSpacing: 0.5,
   },
-  content: {
+  scrollView: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
+  },
+  scrollViewContent: {
+    paddingBottom: 100, // Extra space for TabBar
   },
   loadingContainer: {
     flex: 1,
@@ -709,11 +726,17 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#FFFFFF",
   },
   activeRentalContainer: {
     borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    padding: 20,
+    marginTop: 20,
+    marginBottom: 20,
+    backgroundColor: "#121212",
+    elevation: 4,
   },
   sectionTitle: {
     fontSize: 14,
@@ -840,13 +863,15 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.7)",
-    justifyContent: "flex-end",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContainer: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 16,
+    width: width * 0.9,
+    borderRadius: 16,
     maxHeight: "80%",
+    backgroundColor: "#121212",
+    elevation: 5,
   },
   modalHeader: {
     flexDirection: "row",

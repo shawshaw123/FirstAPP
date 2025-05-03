@@ -6,6 +6,9 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Alert,
+  StatusBar,
+  Dimensions,
+  Platform,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import Colors from "@/constants/Colors";
@@ -13,6 +16,8 @@ import Button from "@/components/Button";
 import { useRentalStore } from "@/store/rental-store";
 import { useStationStore } from "@/store/station-store";
 import { X } from "lucide-react-native";
+
+const { width } = Dimensions.get('window');
 
 export default function ScanScreen() {
   const router = useRouter();
@@ -72,8 +77,13 @@ export default function ScanScreen() {
 
   return (
       <SafeAreaView style={styles.container}>
+        <StatusBar backgroundColor={Colors.dark.background} barStyle="light-content" />
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleCancel} style={styles.closeButton}>
+          <TouchableOpacity 
+            onPress={handleCancel} 
+            style={styles.closeButton}
+            activeOpacity={0.7}
+          >
             <X size={24} color={Colors.light.text} />
           </TouchableOpacity>
         </View>
@@ -118,84 +128,99 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.background,
   },
   header: {
-    padding: 16,
+    paddingTop: Platform.OS === "android" ? 16 : 8,
+    paddingHorizontal: 16,
+    paddingBottom: 8,
     alignItems: "flex-end",
   },
   closeButton: {
-    padding: 8,
+    padding: 12,
+    borderRadius: 8,
   },
   scannerContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingBottom: 20, // Better positioning on Android
   },
   scannerFrame: {
-    width: 250,
-    height: 250,
+    width: width * 0.7, // Responsive width based on screen size
+    height: width * 0.7, // Keep it square
     position: "relative",
   },
   cornerTopLeft: {
     position: "absolute",
     top: 0,
     left: 0,
-    width: 30,
-    height: 30,
-    borderTopWidth: 2,
-    borderLeftWidth: 2,
+    width: 40, // Larger corners for better visibility
+    height: 40,
+    borderTopWidth: 3, // Thicker borders
+    borderLeftWidth: 3,
     borderColor: Colors.light.text,
   },
   cornerTopRight: {
     position: "absolute",
     top: 0,
     right: 0,
-    width: 30,
-    height: 30,
-    borderTopWidth: 2,
-    borderRightWidth: 2,
+    width: 40,
+    height: 40,
+    borderTopWidth: 3,
+    borderRightWidth: 3,
     borderColor: Colors.light.text,
   },
   cornerBottomLeft: {
     position: "absolute",
     bottom: 0,
     left: 0,
-    width: 30,
-    height: 30,
-    borderBottomWidth: 2,
-    borderLeftWidth: 2,
+    width: 40,
+    height: 40,
+    borderBottomWidth: 3,
+    borderLeftWidth: 3,
     borderColor: Colors.light.text,
   },
   cornerBottomRight: {
     position: "absolute",
     bottom: 0,
     right: 0,
-    width: 30,
-    height: 30,
-    borderBottomWidth: 2,
-    borderRightWidth: 2,
+    width: 40,
+    height: 40,
+    borderBottomWidth: 3,
+    borderRightWidth: 3,
     borderColor: Colors.light.text,
   },
   footer: {
     padding: 24,
+    paddingBottom: Platform.OS === "android" ? 32 : 24, // Extra padding on Android
     alignItems: "center",
+    backgroundColor: Colors.dark.background,
+    elevation: 4, // Add shadow on Android
   },
   scanTitle: {
-    fontSize: 18,
+    fontSize: 20, // Larger font
     fontWeight: "bold",
     color: Colors.light.text,
-    marginBottom: 8,
+    marginBottom: 12,
     textAlign: "center",
+    letterSpacing: 0.5, // Better typography
   },
   scanDescription: {
-    fontSize: 14,
+    fontSize: 16, // Larger font
     color: Colors.dark.textSecondary,
     textAlign: "center",
     marginBottom: 32,
+    lineHeight: 22, // Better line height for readability
+    letterSpacing: 0.2,
   },
   scanButton: {
     width: "100%",
-    marginBottom: 12,
+    marginBottom: 16, // More space between buttons
+    height: 56, // Taller buttons for better touch targets
+    borderRadius: 12, // Rounded corners
+    elevation: 3, // Android shadow
   },
   cancelButton: {
     width: "100%",
+    height: 56,
+    borderRadius: 12,
   },
 });

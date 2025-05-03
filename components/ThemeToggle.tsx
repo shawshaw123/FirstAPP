@@ -1,5 +1,5 @@
 import React from "react";
-import { TouchableOpacity, StyleSheet, Animated, Easing } from "react-native";
+import { TouchableOpacity, StyleSheet, Animated, Easing, Platform, Pressable } from "react-native";
 import { useTheme } from "@/components/theme-context";
 import { Sun, Moon } from "lucide-react-native";
 
@@ -28,25 +28,39 @@ export default function ThemeToggle({ size = 24 }: ThemeToggleProps) {
     outputRange: ["0deg", "180deg"],
   });
 
+  // Use Pressable on Android for better touch feedback
+  const ButtonComponent = Platform.OS === 'android' ? Pressable : TouchableOpacity;
+
   return (
-      <TouchableOpacity
+      <ButtonComponent
           style={[
             styles.container,
             {
               backgroundColor: isDark ? colors.cardBackground : colors.cardBackgroundAlt,
+              elevation: Platform.OS === 'android' ? 4 : 0,
             },
           ]}
           onPress={handleToggle}
-          activeOpacity={0.7}
+          activeOpacity={Platform.OS === 'ios' ? 0.7 : undefined}
+          android_ripple={Platform.OS === 'android' ? { 
+            color: colors.primary + '20',
+            borderless: true,
+            radius: 20
+          } : undefined}
       >
-        <Animated.View style={{ transform: [{ rotate: spin }] }}>
+        <Animated.View 
+          style={{ 
+            transform: [{ rotate: spin }],
+            backfaceVisibility: 'hidden', // Improves performance on Android
+          }}
+        >
           {isDark ? (
               <Sun size={size} color={colors.text} />
           ) : (
               <Moon size={size} color={colors.text} />
           )}
         </Animated.View>
-      </TouchableOpacity>
+      </ButtonComponent>
   );
 }
 
@@ -57,5 +71,17 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
+    // Add platform-specific shadow styles
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        // Android elevation is handled in the component style prop
+      }
+    }),
   },
 });

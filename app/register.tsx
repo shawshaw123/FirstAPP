@@ -9,6 +9,8 @@ import {
   Platform,
   ScrollView,
   Alert,
+  StatusBar,
+  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import Colors from "@/constants/Colors";
@@ -16,6 +18,8 @@ import Button from "@/components/Button";
 import Input from "@/components/Input";
 import { useAuthStore } from "@/store/auth-store";
 import { ArrowLeft } from "lucide-react-native";
+
+const { width } = Dimensions.get("window");
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -88,13 +92,22 @@ export default function RegisterScreen() {
 
   return (
       <SafeAreaView style={styles.container}>
+        <StatusBar backgroundColor={Colors.dark.background} barStyle="light-content" />
         <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={styles.keyboardAvoidingView}
         >
-          <ScrollView contentContainerStyle={styles.scrollView}>
+          <ScrollView 
+              contentContainerStyle={styles.scrollView}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+          >
             <View style={styles.header}>
-              <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+              <TouchableOpacity 
+                  onPress={handleBack} 
+                  style={styles.backButton}
+                  activeOpacity={0.7}
+              >
                 <ArrowLeft size={24} color={Colors.light.text} />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>CREATE ACCOUNT</Text>
@@ -174,56 +187,68 @@ const styles = StyleSheet.create({
   scrollView: {
     flexGrow: 1,
     paddingHorizontal: 24,
+    paddingBottom: 24,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 16,
-    marginBottom: 24,
+    paddingTop: Platform.OS === "android" ? 20 : 16,
+    marginBottom: 32,
   },
   backButton: {
-    padding: 8,
+    padding: 10,
     marginRight: 16,
+    borderRadius: 8,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
     color: Colors.dark.text,
+    letterSpacing: 0.5,
   },
   content: {
     flex: 1,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
     color: Colors.light.text,
-    marginBottom: 8,
+    marginBottom: 12,
+    letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 16,
     color: Colors.light.textSecondary,
-    marginBottom: 24,
+    marginBottom: 32,
+    lineHeight: 22,
+    letterSpacing: 0.2,
   },
   form: {
     width: "100%",
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "600",
     color: Colors.dark.textSecondary,
-    marginBottom: 8,
+    marginBottom: 10,
+    marginTop: 16,
+    letterSpacing: 0.5,
   },
   createButtonContainer: {
-    marginTop: 24,
+    marginTop: 32,
     marginBottom: 40,
   },
   createText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "600",
     color: Colors.dark.textSecondary,
-    marginBottom: 8,
+    marginBottom: 10,
+    letterSpacing: 0.5,
   },
   createButton: {
     width: "100%",
+    height: 56,
+    borderRadius: 12,
+    elevation: 3,
   },
 });

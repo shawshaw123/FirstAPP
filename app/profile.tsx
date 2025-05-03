@@ -14,6 +14,8 @@ import {
   Share,
   Image,
   Linking,
+  StatusBar,
+  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useTheme } from "@/components/theme-context";
@@ -25,6 +27,9 @@ import GradientCard from "@/components/GradientCard";
 import { useLogging } from "@/hooks/use-logging";
 import { useConcurrentOperations } from "@/hooks/use-concurrent-operations";
 import { TaskPriority } from "@/services/concurrent-queue";
+
+
+const { width } = Dimensions.get("window");
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -234,6 +239,7 @@ export default function ProfileScreen() {
   if (isLoading) {
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: "#000000" }]}>
+          <StatusBar backgroundColor="#000000" barStyle="light-content" />
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#00C853" />
             <Text style={[styles.loadingText, { color: "#FFFFFF" }]}>Loading profile...</Text>
@@ -245,7 +251,12 @@ export default function ProfileScreen() {
 
   return (
       <SafeAreaView style={[styles.container, { backgroundColor: "#000000" }]}>
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <StatusBar backgroundColor="#000000" barStyle="light-content" />
+        <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollViewContent}
+        >
           <View style={styles.header}>
             <Text style={[styles.title, { color: "#FFFFFF" }]}>Profile</Text>
           </View>
@@ -671,6 +682,8 @@ export default function ProfileScreen() {
   );
 }
 
+
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -678,15 +691,10 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
   },
-  header: {
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
+  scrollViewContent: {
+    paddingBottom: 100, // Extra space for TabBar
   },
   loadingContainer: {
     flex: 1,
@@ -695,35 +703,58 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  header: {
+    paddingTop: Platform.OS === "android" ? 16 : 8,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#121212",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    letterSpacing: 0.5,
   },
   walletCard: {
-    marginVertical: 24,
+    marginTop: 24,
+    marginBottom: 24,
+    padding: 20,
+    borderRadius: 16,
+    elevation: 4,
   },
   walletHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 12,
   },
   walletTitle: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "600",
+    letterSpacing: 0.3,
   },
   walletBalance: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: "bold",
     marginBottom: 16,
+    letterSpacing: 0.5,
   },
   addFundsButton: {
     alignSelf: "flex-start",
+    paddingHorizontal: 30,
+    height: 44,
+    borderRadius: 22,
   },
   menuSection: {
     marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "600",
     marginBottom: 16,
+    letterSpacing: 0.3,
   },
   menuItem: {
     flexDirection: "row",
@@ -732,11 +763,11 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
+    elevation: 2,
   },
   menuItemLeft: {
     flexDirection: "row",
     alignItems: "center",
-    flex: 1,
   },
   menuIconContainer: {
     width: 40,
@@ -744,56 +775,73 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: 16,
   },
   menuItemText: {
     fontSize: 16,
-    flex: 1,
+    fontWeight: "500",
+    letterSpacing: 0.2,
   },
   logoutButton: {
-    marginBottom: 40,
+    marginTop: 16,
+    marginBottom: 32,
+    borderRadius: 12,
+    borderColor: "#333333",
+    height: 56,
+    elevation: 2,
   },
-  // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
   },
   modalContainer: {
-    width: "80%",
-    borderRadius: 16,
-    padding: 24,
-    alignItems: "center",
-    maxHeight: "80%",
+    width: '80%', // Adjust width as needed
+    padding: 20,
+    backgroundColor: '#121212',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center', // Ensure content is centered
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 8,
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+    fontFamily: Platform.OS === 'android' ? 'sans-serif-medium' : undefined,
   },
   modalSubtitle: {
-    fontSize: 14,
-    marginBottom: 24,
-    textAlign: "center",
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: 'center',
+    width: '100%',
   },
   amountInput: {
-    width: "100%",
+    width: '100%',
     height: 50,
     borderWidth: 1,
-    borderRadius: 25,
+    borderRadius: 8,
     paddingHorizontal: 16,
-    fontSize: 16,
     marginBottom: 24,
+    fontSize: 18,
+    textAlign: 'center',
   },
   modalButtons: {
-    flexDirection: "row",
-    width: "100%",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
   },
   modalButton: {
-    flex: 1,
-    marginHorizontal: 8,
+    width: '48%',
   },
   // Payment methods styles
   paymentMethodsContainer: {

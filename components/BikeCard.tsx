@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, Platform } from "react-native";
 import { Bike } from "@/components";
 import { useTheme } from "@/components/theme-context";
 import { Bike as BikeIcon, Battery, Shield, Zap } from "lucide-react-native";
@@ -72,6 +72,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
+    elevation: Platform.OS === 'android' ? 3 : 0,
+    shadowColor: Platform.OS === 'ios' ? "#000" : "transparent",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   leftContent: {
     flexDirection: "row",
@@ -85,6 +90,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
+    elevation: Platform.OS === 'android' ? 2 : 0,
   },
   bikeInfo: {
     flex: 1,
@@ -93,6 +99,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     marginBottom: 4,
+    letterSpacing: 0.3,
   },
   bikeDetails: {
     flexDirection: "row",
@@ -106,28 +113,31 @@ const styles = StyleSheet.create({
   batteryText: {
     fontSize: 12,
     marginLeft: 4,
+    letterSpacing: 0.2,
   },
   electricBadge: {
     backgroundColor: "#7C4DFF20",
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 3,
     borderRadius: 4,
   },
   electricBadgeText: {
     color: "#7C4DFF",
     fontSize: 10,
     fontWeight: "bold",
+    letterSpacing: 0.2,
   },
   regularBadge: {
     backgroundColor: "#00C85320",
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 3,
     borderRadius: 4,
   },
   regularBadgeText: {
     color: "#00C853",
     fontSize: 10,
     fontWeight: "bold",
+    letterSpacing: 0.2,
   },
   rightContent: {
     alignItems: "flex-end",
@@ -135,5 +145,6 @@ const styles = StyleSheet.create({
   rentalPrice: {
     fontSize: 16,
     fontWeight: "bold",
+    letterSpacing: 0.3,
   },
 });

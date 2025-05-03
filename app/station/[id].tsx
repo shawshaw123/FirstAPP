@@ -121,8 +121,10 @@ export default function StationDetailScreen() {
                 <Text style={[styles.stationName, { color: colors.text }]}>{selectedStation.name}</Text>
 
                 <View style={[styles.stationImageContainer, { backgroundColor: colors.cardBackgroundAlt }]}>
+                    <View style={styles.logoContainer}>
+                        <Text style={[styles.logoText, { color: '#00C853' }]}>FORDA GO</Text>
+                    </View>
                     <Image
-                        source={{ uri: "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80" }}
                         style={styles.stationImage}
                         resizeMode="cover"
                     />
@@ -288,5 +290,21 @@ const styles = StyleSheet.create({
     emptyText: {
         fontSize: 16,
         textAlign: "center",
+    },
+    logoContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#121212',
+    },
+    logoText: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+        marginBottom: 16,
     },
 });

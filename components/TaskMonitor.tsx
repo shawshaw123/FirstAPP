@@ -7,6 +7,10 @@ import {
     TouchableOpacity,
     Modal,
     ScrollView,
+    Platform,
+    StatusBar,
+    BackHandler,
+    Pressable,
 } from 'react-native';
 import { useTheme } from '@/components/theme-context';
 import { useConcurrentOperations } from '@/hooks/use-concurrent-operations';
@@ -144,23 +148,65 @@ export default function TaskMonitor({ visible, onClose }: TaskMonitorProps) {
         </TouchableOpacity>
     );
 
+    // Handle back button press on Android
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+            if (visible) {
+                if (selectedTask) {
+                    setSelectedTask(null);
+                    return true;
+                }
+                onClose();
+                return true;
+            }
+            return false;
+        });
+
+        return () => backHandler.remove();
+    }, [visible, selectedTask, onClose]);
+
     return (
         <Modal
             visible={visible}
             animationType="slide"
             transparent={false}
             onRequestClose={onClose}
+            statusBarTranslucent={Platform.OS === 'android'}
         >
-            <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <StatusBar
+                backgroundColor={colors.background}
+                barStyle={Platform.OS === 'android' ? 'light-content' : 'dark-content'}
+            />
+            <View style={[
+                styles.container, 
+                { 
+                    backgroundColor: colors.background,
+                    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 50
+                }
+            ]}>
                 <View style={styles.header}>
                     <Text style={[styles.title, { color: colors.text }]}>Task Monitor</Text>
-                    <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                    <Pressable 
+                        onPress={onClose} 
+                        style={styles.closeButton}
+                        android_ripple={{ color: colors.primary + '20', radius: 20 }}
+                    >
                         <X size={24} color={colors.text} />
-                    </TouchableOpacity>
+                    </Pressable>
                 </View>
 
                 <View style={styles.statsContainer}>
-                    <View style={[styles.statsCard, { backgroundColor: colors.cardBackground }]}>
+                    <View style={[
+                        styles.statsCard, 
+                        { 
+                            backgroundColor: colors.cardBackground,
+                            elevation: Platform.OS === 'android' ? 4 : 0,
+                            shadowColor: Platform.OS === 'ios' ? "#000" : "transparent",
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.1,
+                            shadowRadius: 3,
+                        }
+                    ]}>
                         <Text style={[styles.statsTitle, { color: colors.textSecondary }]}>Queue Status</Text>
                         <View style={styles.statsRow}>
                             <View style={styles.statItem}>
@@ -186,16 +232,30 @@ export default function TaskMonitor({ visible, onClose }: TaskMonitorProps) {
                 <View style={styles.toolbar}>
                     {isProcessing ? (
                         <TouchableOpacity
-                            style={[styles.toolbarButton, { backgroundColor: colors.cardBackground }]}
+                            style={[
+                                styles.toolbarButton, 
+                                { 
+                                    backgroundColor: colors.cardBackground,
+                                    elevation: Platform.OS === 'android' ? 2 : 0,
+                                }
+                            ]}
                             onPress={pauseQueue}
+                            activeOpacity={0.7}
                         >
                             <Pause size={20} color={colors.text} />
                             <Text style={[styles.toolbarButtonText, { color: colors.text }]}>Pause</Text>
                         </TouchableOpacity>
                     ) : (
                         <TouchableOpacity
-                            style={[styles.toolbarButton, { backgroundColor: colors.cardBackground }]}
+                            style={[
+                                styles.toolbarButton, 
+                                { 
+                                    backgroundColor: colors.cardBackground,
+                                    elevation: Platform.OS === 'android' ? 2 : 0,
+                                }
+                            ]}
                             onPress={resumeQueue}
+                            activeOpacity={0.7}
                         >
                             <Play size={20} color={colors.text} />
                             <Text style={[styles.toolbarButtonText, { color: colors.text }]}>Resume</Text>
@@ -203,16 +263,30 @@ export default function TaskMonitor({ visible, onClose }: TaskMonitorProps) {
                     )}
 
                     <TouchableOpacity
-                        style={[styles.toolbarButton, { backgroundColor: colors.cardBackground }]}
+                        style={[
+                            styles.toolbarButton, 
+                            { 
+                                backgroundColor: colors.cardBackground,
+                                elevation: Platform.OS === 'android' ? 2 : 0,
+                            }
+                        ]}
                         onPress={clearCompletedTasks}
+                        activeOpacity={0.7}
                     >
                         <CheckCircle size={20} color={colors.text} />
                         <Text style={[styles.toolbarButtonText, { color: colors.text }]}>Clear Completed</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={[styles.toolbarButton, { backgroundColor: colors.cardBackground }]}
+                        style={[
+                            styles.toolbarButton, 
+                            { 
+                                backgroundColor: colors.cardBackground,
+                                elevation: Platform.OS === 'android' ? 2 : 0,
+                            }
+                        ]}
                         onPress={() => setRefreshKey(prev => prev + 1)}
+                        activeOpacity={0.7}
                     >
                         <RefreshCw size={20} color={colors.text} />
                         <Text style={[styles.toolbarButtonText, { color: colors.text }]}>Refresh</Text>
@@ -234,6 +308,8 @@ export default function TaskMonitor({ visible, onClose }: TaskMonitorProps) {
                         keyExtractor={(item) => item.id}
                         contentContainerStyle={styles.tasksList}
                         extraData={refreshKey}
+                        showsVerticalScrollIndicator={false}
+                        overScrollMode={Platform.OS === 'android' ? 'never' : 'auto'}
                     />
                 )}
 
@@ -243,18 +319,38 @@ export default function TaskMonitor({ visible, onClose }: TaskMonitorProps) {
                     transparent={true}
                     animationType="fade"
                     onRequestClose={() => setSelectedTask(null)}
+                    statusBarTranslucent={Platform.OS === 'android'}
                 >
                     <View style={styles.detailModalOverlay}>
-                        <View style={[styles.detailModalContent, { backgroundColor: colors.cardBackground }]}>
+                        <View style={[
+                            styles.detailModalContent, 
+                            { 
+                                backgroundColor: colors.cardBackground,
+                                elevation: Platform.OS === 'android' ? 24 : 0,
+                                shadowColor: Platform.OS === 'ios' ? "#000" : "transparent",
+                                shadowOffset: { width: 0, height: 4 },
+                                shadowOpacity: 0.3,
+                                shadowRadius: 8,
+                            }
+                        ]}>
                             <View style={styles.detailModalHeader}>
                                 <Text style={[styles.detailModalTitle, { color: colors.text }]}>Task Details</Text>
-                                <TouchableOpacity onPress={() => setSelectedTask(null)}>
-                                    <X size={24} color={colors.text} />
-                                </TouchableOpacity>
+                                // For the task detail modal close button:
+                                <Pressable 
+                                onPress={() => setSelectedTask(null)}
+                                style={styles.closeButton}
+                                android_ripple={{ color: colors.primary + '20', radius: 20 }}
+                                >
+                                <X size={24} color={colors.text} />
+                                </Pressable>
                             </View>
 
                             {selectedTask && (
-                                <ScrollView style={styles.detailModalBody}>
+                                <ScrollView 
+                                    style={styles.detailModalBody}
+                                    showsVerticalScrollIndicator={false}
+                                    overScrollMode={Platform.OS === 'android' ? 'never' : 'auto'}
+                                >
                                     <View style={styles.detailRow}>
                                         <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>ID:</Text>
                                         <Text style={[styles.detailValue, { color: colors.text }]}>
@@ -368,9 +464,11 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 20,
         fontWeight: 'bold',
+        letterSpacing: Platform.OS === 'android' ? 0.5 : 0,
     },
     closeButton: {
         padding: 8,
+        borderRadius: 20,
     },
     statsContainer: {
         paddingHorizontal: 16,
@@ -383,6 +481,7 @@ const styles = StyleSheet.create({
     statsTitle: {
         fontSize: 14,
         marginBottom: 12,
+        letterSpacing: Platform.OS === 'android' ? 0.25 : 0,
     },
     statsRow: {
         flexDirection: 'row',
@@ -398,6 +497,7 @@ const styles = StyleSheet.create({
     },
     statLabel: {
         fontSize: 12,
+        letterSpacing: Platform.OS === 'android' ? 0.2 : 0,
     },
     toolbar: {
         flexDirection: 'row',
@@ -413,15 +513,18 @@ const styles = StyleSheet.create({
     },
     toolbarButtonText: {
         marginLeft: 8,
+        letterSpacing: Platform.OS === 'android' ? 0.25 : 0,
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
         paddingHorizontal: 16,
         marginBottom: 8,
+        letterSpacing: Platform.OS === 'android' ? 0.25 : 0,
     },
     tasksList: {
         paddingHorizontal: 16,
+        paddingBottom: Platform.OS === 'android' ? 16 : 0,
     },
     taskItem: {
         padding: 12,
@@ -441,6 +544,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: 'bold',
         marginLeft: 4,
+        letterSpacing: Platform.OS === 'android' ? 0.25 : 0,
     },
     taskTime: {
         fontSize: 12,
@@ -462,6 +566,7 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         fontSize: 16,
+        letterSpacing: Platform.OS === 'android' ? 0.25 : 0,
     },
     detailModalOverlay: {
         flex: 1,
@@ -484,6 +589,7 @@ const styles = StyleSheet.create({
     detailModalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
+        letterSpacing: Platform.OS === 'android' ? 0.25 : 0,
     },
     detailModalBody: {
         maxHeight: '90%',
@@ -494,9 +600,11 @@ const styles = StyleSheet.create({
     detailLabel: {
         fontSize: 14,
         marginBottom: 4,
+        letterSpacing: Platform.OS === 'android' ? 0.25 : 0,
     },
     detailValue: {
         fontSize: 16,
+        letterSpacing: Platform.OS === 'android' ? 0.25 : 0,
     },
     detailSection: {
         marginTop: 8,
@@ -504,9 +612,10 @@ const styles = StyleSheet.create({
     detailSectionTitle: {
         fontSize: 14,
         marginBottom: 4,
+        letterSpacing: Platform.OS === 'android' ? 0.25 : 0,
     },
     detailJson: {
         fontSize: 14,
-        fontFamily: 'monospace',
+        fontFamily: Platform.OS === 'android' ? 'monospace' : 'Courier',
     },
 });

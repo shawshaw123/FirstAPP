@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from "react-native";
+import { View, Text, TouchableOpacity, Pressable, StyleSheet, Platform, Dimensions } from "react-native";
 import { useRouter, usePathname } from "expo-router";
 import { Map, Bike, Clock, User } from "lucide-react-native";
 import Animated, {
@@ -41,10 +41,16 @@ export default function TabBar() {
 
 
   return (
-      <View style={[styles.container, { backgroundColor: colors.tabBarBackground, borderTopColor: colors.border }]}>
+      <View style={[
+        styles.container, 
+        { 
+          backgroundColor: colors.tabBarBackground, 
+          borderTopColor: colors.border,
+          elevation: Platform.OS === 'android' ? 8 : 0,
+        }
+      ]}>
         {tabs.map((tab) => (
             <TabButton
-
                 key={tab.name}
                 tab={tab}
                 isActive={pathname === tab.path}
@@ -54,7 +60,6 @@ export default function TabBar() {
                   else if (tab.path === "/history") router.push("/history");
                   else if (tab.path === "/profile") router.push("/profile");
                 }}
-
             />
         ))}
       </View>
@@ -110,12 +115,16 @@ function TabButton({ tab, isActive, onPress }: TabButtonProps) {
   });
 
   return (
-      <TouchableOpacity
+      <Pressable
           style={styles.tab}
           onPress={onPress}
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
-          activeOpacity={1}
+          android_ripple={{
+            color: colors.primary + '20',
+            borderless: true,
+            radius: 20
+          }}
       >
         <Animated.View style={[styles.tabContent, animatedStyle]}>
           <Animated.View
@@ -134,14 +143,15 @@ function TabButton({ tab, isActive, onPress }: TabButtonProps) {
                 styles.tabText,
                 {
                   color: isActive ? colors.primary : colors.tabBarInactive,
-                  fontWeight: isActive ? "500" : "normal"
+                  fontWeight: isActive ? "500" : "normal",
+                  letterSpacing: Platform.OS === 'android' ? 0.3 : 0
                 },
               ]}
           >
             {tab.name}
           </Text>
         </Animated.View>
-      </TouchableOpacity>
+      </Pressable>
   );
 }
 
@@ -151,13 +161,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#000000",
     borderTopWidth: 1,
     borderTopColor: "#333333",
-    paddingBottom: Platform.OS === "ios" ? 20 : 8, // Extra padding for iOS home indicator
+    paddingBottom: Platform.OS === "ios" ? 20 : 8,
     paddingTop: 12,
+    shadowColor: Platform.OS === 'ios' ? "#000" : "transparent",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   tab: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    minHeight: Platform.OS === 'android' ? 56 : 50,
   },
   tabContent: {
     alignItems: "center",
@@ -172,7 +187,7 @@ const styles = StyleSheet.create({
     left: 8,
     right: 8,
     bottom: 0,
-    borderRadius: 16,
+    borderRadius: Platform.OS === 'android' ? 8 : 16,
   },
   tabText: {
     fontSize: 12,

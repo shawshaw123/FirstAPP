@@ -1,14 +1,15 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Platform, TouchableOpacity } from "react-native";
 import { RentalHistory } from "@/components";
 import { useTheme } from "@/components/theme-context";
 import { Bike, CheckCircle } from "lucide-react-native";
 
 interface RentalHistoryCardProps {
   rental: RentalHistory;
+  onPress?: () => void;
 }
 
-export default function RentalHistoryCard({ rental }: RentalHistoryCardProps) {
+export default function RentalHistoryCard({ rental, onPress }: RentalHistoryCardProps) {
   const { colors } = useTheme();
 
   // Format date to display
@@ -36,7 +37,15 @@ export default function RentalHistoryCard({ rental }: RentalHistoryCardProps) {
   const endTime = formatTime(rental.endTime);
 
   return (
-      <View style={[styles.container, { backgroundColor: colors.cardBackground }]}>
+      <TouchableOpacity 
+        style={[
+          styles.container, 
+          { backgroundColor: colors.cardBackground }
+        ]}
+        onPress={onPress}
+        activeOpacity={0.8}
+        disabled={!onPress}
+      >
         <View style={styles.header}>
           <View style={styles.bikeInfo}>
             <Bike size={20} color={colors.primary} />
@@ -58,7 +67,7 @@ export default function RentalHistoryCard({ rental }: RentalHistoryCardProps) {
             <Text style={[styles.cost, { color: colors.text }]}>₱{rental.cost}</Text>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
   );
 }
 
@@ -67,6 +76,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
+    elevation: Platform.OS === 'android' ? 3 : 0,
+    shadowColor: Platform.OS === 'ios' ? "#000" : "transparent",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   header: {
     flexDirection: "row",
@@ -82,19 +96,23 @@ const styles = StyleSheet.create({
   bikeName: {
     fontSize: 16,
     fontWeight: "600",
+    letterSpacing: Platform.OS === 'android' ? 0.3 : 0,
   },
   content: {
     gap: 4,
   },
   date: {
     fontSize: 14,
+    letterSpacing: 0.2,
   },
   time: {
     fontSize: 14,
+    letterSpacing: 0.2,
   },
   route: {
     fontSize: 14,
     marginBottom: 8,
+    letterSpacing: 0.2,
   },
   footer: {
     flexDirection: "row",
@@ -105,9 +123,11 @@ const styles = StyleSheet.create({
   distance: {
     fontSize: 14,
     fontWeight: "500",
+    letterSpacing: 0.2,
   },
   cost: {
     fontSize: 16,
     fontWeight: "600",
+    letterSpacing: 0.3,
   },
 });
