@@ -32,6 +32,7 @@ const getCurrentUser = async (): Promise<User | null> => {
 };
 
 // Save user to storage
+// This is using AsyncStorage, not Firebase
 const saveUser = async (user: User): Promise<void> => {
   try {
     await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
@@ -40,16 +41,7 @@ const saveUser = async (user: User): Promise<void> => {
   }
 };
 
-// Clear user from storage
-const clearUser = async (): Promise<void> => {
-  try {
-    await AsyncStorage.removeItem(AUTH_USER_KEY);
-  } catch (error) {
-    console.error('Error clearing user:', error);
-  }
-};
-
-// Register a new user
+// Registration just adds to local mock data
 export const registerUser = async (
     name: string,
     email: string,
@@ -85,6 +77,15 @@ export const registerUser = async (
   await saveUser(newUser);
 
   return newUser;
+};
+
+// Clear user from storage
+const clearUser = async (): Promise<void> => {
+  try {
+    await AsyncStorage.removeItem(AUTH_USER_KEY);
+  } catch (error) {
+    console.error('Error clearing user:', error);
+  }
 };
 
 // Login user
