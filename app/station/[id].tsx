@@ -187,10 +187,14 @@ const styles = StyleSheet.create({
     },
     header: {
         paddingHorizontal: 16,
-        paddingTop: 16,
+        paddingTop: Platform.OS === 'ios' ? 40 : 20,
+        paddingBottom: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     backButton: {
         padding: 8,
+        borderRadius: 8,
     },
     loadingContainer: {
         flex: 1,
@@ -226,10 +230,26 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         overflow: "hidden",
         marginBottom: 16,
+        backgroundColor: '#1A1A1A',
+    },
+    logoContainer: {
+        position: 'absolute',
+        top: 16,
+        left: 16,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 6,
+        zIndex: 1,
+    },
+    logoText: {
+        fontSize: 16,
+        fontWeight: 'bold',
     },
     stationImage: {
         width: "100%",
         height: "100%",
+        opacity: 0.7,
     },
     stationImageOverlay: {
         position: "absolute",
@@ -250,25 +270,28 @@ const styles = StyleSheet.create({
     },
     directionsText: {
         color: "#FFFFFF",
-        fontWeight: "600",
         marginLeft: 8,
+        fontWeight: "600",
     },
     statsContainer: {
         flexDirection: "row",
-        borderRadius: 12,
+        justifyContent: "space-between",
         padding: 16,
+        borderRadius: 12,
+        marginBottom: 24,
     },
     statItem: {
-        flex: 1,
         alignItems: "center",
+        flex: 1,
     },
     statValue: {
-        fontSize: 24,
+        fontSize: 20,
         fontWeight: "bold",
         marginVertical: 4,
     },
     statLabel: {
-        fontSize: 14,
+        fontSize: 12,
+        textAlign: "center",
     },
     bikesContainer: {
         flex: 1,
@@ -280,31 +303,14 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     bikesList: {
-        paddingBottom: 16,
+        paddingBottom: 24,
     },
     emptyContainer: {
         padding: 24,
         alignItems: "center",
-        justifyContent: "center",
     },
     emptyText: {
         fontSize: 16,
         textAlign: "center",
-    },
-    logoContainer: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#121212',
-    },
-    logoText: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#FFFFFF',
-        marginBottom: 16,
     },
 });

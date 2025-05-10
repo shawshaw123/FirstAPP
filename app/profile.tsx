@@ -14,7 +14,7 @@ import {
   Share,
   Image,
   Linking,
-  StatusBar,
+  KeyboardAvoidingView,
   Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -28,8 +28,7 @@ import { useLogging } from "@/hooks/use-logging";
 import { useConcurrentOperations } from "@/hooks/use-concurrent-operations";
 import { TaskPriority } from "@/services/concurrent-queue";
 
-
-const { width } = Dimensions.get("window");
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -45,6 +44,7 @@ export default function ProfileScreen() {
   const [showTermsPrivacyModal, setShowTermsPrivacyModal] = useState(false);
   const [fundAmount, setFundAmount] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     // Check authentication status
@@ -69,6 +69,7 @@ export default function ProfileScreen() {
     }
   }, [error]);
 
+
   const handleLogout = async () => {
     Alert.alert(
         "Logout",
@@ -91,7 +92,7 @@ export default function ProfileScreen() {
 
   const handleAddFunds = () => {
     // For iOS, we can use Alert.prompt
-    if (Platform.OS === 'android') {
+    if (Platform.OS === 'ios') {
       Alert.prompt(
           "Add Funds",
           "Enter amount to add to your wallet:",
@@ -143,17 +144,29 @@ export default function ProfileScreen() {
     const numAmount = parseFloat(fundAmount);
     if (!isNaN(numAmount) && numAmount > 0) {
       try {
+        // Call the addFunds function from the auth store
         await addFunds(numAmount);
 
+        // Log the transaction
         logInfo("Funds added to wallet", {
           userId: user?.id,
           amount: numAmount,
           newBalance: (user?.walletBalance || 0) + numAmount
         });
 
+        // Close the modal and reset the input
         setShowAddFundsModal(false);
         setFundAmount("");
-        Alert.alert("Success", `₱${numAmount} added to your wallet.`);
+        
+        // Show success message with updated balance info
+        Alert.alert(
+          "Success", 
+          `₱${numAmount} added to your wallet.\nNew balance: ₱${(user?.walletBalance || 0) + numAmount}`
+        );
+        
+        // Trigger a refresh to update the UI
+        setRefreshTrigger(prev => prev + 1);
+        
       } catch (error) {
         Alert.alert("Error", "Failed to add funds. Please try again.");
       }
@@ -239,7 +252,6 @@ export default function ProfileScreen() {
   if (isLoading) {
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: "#000000" }]}>
-          <StatusBar backgroundColor="#000000" barStyle="light-content" />
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#00C853" />
             <Text style={[styles.loadingText, { color: "#FFFFFF" }]}>Loading profile...</Text>
@@ -251,12 +263,7 @@ export default function ProfileScreen() {
 
   return (
       <SafeAreaView style={[styles.container, { backgroundColor: "#000000" }]}>
-        <StatusBar backgroundColor="#000000" barStyle="light-content" />
-        <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollViewContent}
-        >
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <Text style={[styles.title, { color: "#FFFFFF" }]}>Profile</Text>
           </View>
@@ -339,353 +346,356 @@ export default function ProfileScreen() {
           />
         </ScrollView>
 
+        {/* Add Funds Modal - Custom Implementation */}
+        {showAddFundsModal && (
+            <View style={[StyleSheet.absoluteFill, { zIndex: 1000 }]}>
+              <KeyboardAvoidingView
+                  behavior={Platform.OS === "ios" ? "padding" : "height"}
+                  style={{flex: 1}}
+              >
+                <View style={styles.modalOverlay}>
+                  <View style={[styles.modalContainer, { backgroundColor: "#121212" }]}>
+                    <Text style={[styles.modalTitle, { color: "#FFFFFF" }]}>Add Funds</Text>
+                    <Text style={[styles.modalSubtitle, { color: "#AAAAAA" }]}>Enter amount to add to your wallet:</Text>
 
+                    <TextInput
+                        style={[styles.amountInput, { color: "#FFFFFF", borderColor: "#333333" }]}
+                        value={fundAmount}
+                        onChangeText={setFundAmount}
+                        placeholder="Enter amount"
+                        placeholderTextColor="#777777"
+                        keyboardType="numeric"
+                        autoFocus
+                    />
 
-
-        {/* Add Funds Modal */}
-        <Modal
-            visible={showAddFundsModal}
-            transparent={true}
-            animationType="fade"
-            onRequestClose={() => setShowAddFundsModal(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContainer, { backgroundColor: "#121212" }]}>
-              <Text style={[styles.modalTitle, { color: "#FFFFFF" }]}>Add Funds</Text>
-              <Text style={[styles.modalSubtitle, { color: "#AAAAAA" }]}>Enter amount to add to your wallet:</Text>
-
-              <TextInput
-                  style={[styles.amountInput, { color: "#FFFFFF", borderColor: "#333333" }]}
-                  value={fundAmount}
-                  onChangeText={setFundAmount}
-                  placeholder="Enter amount"
-                  placeholderTextColor="#777777"
-                  keyboardType="numeric"
-                  autoFocus
-              />
-
-              <View style={styles.modalButtons}>
-                <Button
-                    title="Cancel"
-                    onPress={() => {
-                      setShowAddFundsModal(false);
-                      setFundAmount("");
-                    }}
-                    variant="outline"
-                    style={styles.modalButton}
-                />
-                <Button
-                    title="Add Funds"
-                    onPress={handleAddFundsConfirm}
-                    variant="primary"
-                    style={styles.modalButton}
-                />
-              </View>
-            </View>
-          </View>
-        </Modal>
-
-        {/* Payment Methods Modal */}
-        <Modal
-            visible={showPaymentMethodsModal}
-            transparent={true}
-            animationType="fade"
-            onRequestClose={() => setShowPaymentMethodsModal(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContainer, { backgroundColor: "#121212", width: "90%" }]}>
-              <Text style={[styles.modalTitle, { color: "#FFFFFF" }]}>Payment Methods</Text>
-              <Text style={[styles.modalSubtitle, { color: "#AAAAAA" }]}>Select your preferred payment method:</Text>
-
-              <View style={styles.paymentMethodsContainer}>
-                <TouchableOpacity
-                    style={[
-                      styles.paymentMethodItem,
-                      selectedPaymentMethod === "GCash" && styles.selectedPaymentMethod
-                    ]}
-                    onPress={() => handleConnectGCash()}
-                >
-                  <View style={styles.paymentMethodContent}>
-                    <View style={[styles.paymentIconContainer, { backgroundColor: "#0073FF20" }]}>
-                      <Text style={styles.paymentIconText}>G</Text>
-                    </View>
-                    <View style={styles.paymentMethodInfo}>
-                      <Text style={[styles.paymentMethodName, { color: "#FFFFFF" }]}>GCash</Text>
-                      <Text style={[styles.paymentMethodDesc, { color: "#AAAAAA" }]}>
-                        {selectedPaymentMethod === "GCash"
-                            ? "Connected"
-                            : "Connect your GCash account"}
-                      </Text>
+                    <View style={styles.modalButtons}>
+                      <Button
+                          title="Cancel"
+                          onPress={() => {
+                            setShowAddFundsModal(false);
+                            setFundAmount("");
+                          }}
+                          variant="outline"
+                          style={styles.modalButton}
+                      />
+                      <Button
+                          title="Add Funds"
+                          onPress={handleAddFundsConfirm}
+                          variant="primary"
+                          style={styles.modalButton}
+                      />
                     </View>
                   </View>
+                </View>
+              </KeyboardAvoidingView>
+            </View>
+        )}
 
-                  {selectedPaymentMethod === "GCash" && (
-                      <View style={styles.connectedBadge}>
-                        <Text style={styles.connectedText}>Connected</Text>
+        {/* Payment Methods Modal - Custom Implementation */}
+        {showPaymentMethodsModal && (
+            <View style={[StyleSheet.absoluteFill, { zIndex: 1000 }]}>
+              <KeyboardAvoidingView
+                  behavior={Platform.OS === "ios" ? "padding" : "height"}
+                  style={{flex: 1}}
+              >
+                <View style={styles.modalOverlay}>
+                  <View style={[styles.modalContainer, { backgroundColor: "#121212", width: Platform.OS === 'web' ? "90%" : "85%" }]}>
+                    <Text style={[styles.modalTitle, { color: "#FFFFFF" }]}>Payment Methods</Text>
+                    <Text style={[styles.modalSubtitle, { color: "#AAAAAA" }]}>Select your preferred payment method:</Text>
+
+                    <View style={styles.paymentMethodsContainer}>
+                      <TouchableOpacity
+                          style={[
+                            styles.paymentMethodItem,
+                            selectedPaymentMethod === "GCash" && styles.selectedPaymentMethod
+                          ]}
+                          onPress={() => handleConnectGCash()}
+                      >
+                        <View style={styles.paymentMethodContent}>
+                          <View style={[styles.paymentIconContainer, { backgroundColor: "#0073FF20" }]}>
+                            <Text style={styles.paymentIconText}>G</Text>
+                          </View>
+                          <View style={styles.paymentMethodInfo}>
+                            <Text style={[styles.paymentMethodName, { color: "#FFFFFF" }]}>GCash</Text>
+                            <Text style={[styles.paymentMethodDesc, { color: "#AAAAAA" }]}>
+                              {selectedPaymentMethod === "GCash"
+                                  ? "Connected"
+                                  : "Connect your GCash account"}
+                            </Text>
+                          </View>
+                        </View>
+
+                        {selectedPaymentMethod === "GCash" && (
+                            <View style={styles.connectedBadge}>
+                              <Text style={styles.connectedText}>Connected</Text>
+                            </View>
+                        )}
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                          style={[
+                            styles.paymentMethodItem,
+                            selectedPaymentMethod === "PayMaya" && styles.selectedPaymentMethod
+                          ]}
+                          onPress={() => handleConnectPayMaya()}
+                      >
+                        <View style={styles.paymentMethodContent}>
+                          <View style={[styles.paymentIconContainer, { backgroundColor: "#7B1FA220" }]}>
+                            <Text style={styles.paymentIconText}>P</Text>
+                          </View>
+                          <View style={styles.paymentMethodInfo}>
+                            <Text style={[styles.paymentMethodName, { color: "#FFFFFF" }]}>PayMaya</Text>
+                            <Text style={[styles.paymentMethodDesc, { color: "#AAAAAA" }]}>
+                              {selectedPaymentMethod === "PayMaya"
+                                  ? "Connected"
+                                  : "Connect your PayMaya account"}
+                            </Text>
+                          </View>
+                        </View>
+
+                        {selectedPaymentMethod === "PayMaya" && (
+                            <View style={styles.connectedBadge}>
+                              <Text style={styles.connectedText}>Connected</Text>
+                            </View>
+                        )}
+                      </TouchableOpacity>
+
+                      <View style={styles.paymentInfoBox}>
+                        <Text style={[styles.paymentInfoText, { color: "#AAAAAA" }]}>
+                          Connect your preferred payment method to easily add funds to your wallet. Your payment information is securely stored and processed.
+                        </Text>
                       </View>
-                  )}
-                </TouchableOpacity>
+                    </View>
 
-                <TouchableOpacity
-                    style={[
-                      styles.paymentMethodItem,
-                      selectedPaymentMethod === "PayMaya" && styles.selectedPaymentMethod
-                    ]}
-                    onPress={() => handleConnectPayMaya()}
-                >
-                  <View style={styles.paymentMethodContent}>
-                    <View style={[styles.paymentIconContainer, { backgroundColor: "#7B1FA220" }]}>
-                      <Text style={styles.paymentIconText}>P</Text>
-                    </View>
-                    <View style={styles.paymentMethodInfo}>
-                      <Text style={[styles.paymentMethodName, { color: "#FFFFFF" }]}>PayMaya</Text>
-                      <Text style={[styles.paymentMethodDesc, { color: "#AAAAAA" }]}>
-                        {selectedPaymentMethod === "PayMaya"
-                            ? "Connected"
-                            : "Connect your PayMaya account"}
-                      </Text>
-                    </View>
+                    <Button
+                        title="Close"
+                        onPress={() => setShowPaymentMethodsModal(false)}
+                        variant="outline"
+                        style={{ marginTop: 16 }}
+                    />
                   </View>
+                </View>
+              </KeyboardAvoidingView>
+            </View>
+        )}
 
-                  {selectedPaymentMethod === "PayMaya" && (
-                      <View style={styles.connectedBadge}>
-                        <Text style={styles.connectedText}>Connected</Text>
+        {/* Help & Support Modal - Custom Implementation */}
+        {showHelpSupportModal && (
+            <View style={[StyleSheet.absoluteFill, { zIndex: 1000 }]}>
+              <KeyboardAvoidingView
+                  behavior={Platform.OS === "ios" ? "padding" : "height"}
+                  style={{flex: 1}}
+              >
+                <View style={styles.modalOverlay}>
+                  <View style={[styles.modalContainer, { backgroundColor: "#121212", width: Platform.OS === 'web' ? "90%" : "85%" }]}>
+                    <Text style={[styles.modalTitle, { color: "#FFFFFF" }]}>Help & Support</Text>
+
+                    <ScrollView style={styles.helpContentScroll}>
+                      <View style={styles.helpSection}>
+                        <Text style={[styles.helpSectionTitle, { color: "#FFFFFF" }]}>Frequently Asked Questions</Text>
+
+                        <View style={styles.faqItem}>
+                          <Text style={[styles.faqQuestion, { color: "#FFFFFF" }]}>How do I rent a bike?</Text>
+                          <Text style={[styles.faqAnswer, { color: "#AAAAAA" }]}>
+                            To rent a bike, locate a station on the map, select an available bike, and scan the QR code. The bike will unlock automatically.
+                          </Text>
+                        </View>
+
+                        <View style={styles.faqItem}>
+                          <Text style={[styles.faqQuestion, { color: "#FFFFFF" }]}>How do I end my rental?</Text>
+                          <Text style={[styles.faqAnswer, { color: "#AAAAAA" }]}>
+                            Return the bike to any station and lock it securely. The app will detect when the bike is returned and end your rental automatically.
+                          </Text>
+                        </View>
+
+                        <View style={styles.faqItem}>
+                          <Text style={[styles.faqQuestion, { color: "#FFFFFF" }]}>How much does it cost?</Text>
+                          <Text style={[styles.faqAnswer, { color: "#AAAAAA" }]}>
+                            Rental rates start at ₱20 for regular bikes and ₱30 for electric bikes per hour. You can view the exact price on each bike's details.
+                          </Text>
+                        </View>
+
+                        <View style={styles.faqItem}>
+                          <Text style={[styles.faqQuestion, { color: "#FFFFFF" }]}>What if the bike gets damaged?</Text>
+                          <Text style={[styles.faqAnswer, { color: "#AAAAAA" }]}>
+                            If you notice any damage before renting, please report it through the app. If damage occurs during your rental, contact our support team immediately.
+                          </Text>
+                        </View>
+
+                        <View style={styles.faqItem}>
+                          <Text style={[styles.faqQuestion, { color: "#FFFFFF" }]}>Can I reserve a bike in advance?</Text>
+                          <Text style={[styles.faqAnswer, { color: "#AAAAAA" }]}>
+                            Currently, we don't support bike reservations. Bikes are available on a first-come, first-served basis.
+                          </Text>
+                        </View>
                       </View>
-                  )}
-                </TouchableOpacity>
 
-                <View style={styles.paymentInfoBox}>
-                  <Text style={[styles.paymentInfoText, { color: "#AAAAAA" }]}>
-                    Connect your preferred payment method to easily add funds to your wallet. Your payment information is securely stored and processed.
-                  </Text>
+                      <View style={styles.helpSection}>
+                        <Text style={[styles.helpSectionTitle, { color: "#FFFFFF" }]}>Contact Us</Text>
+                        <Text style={[styles.contactText, { color: "#AAAAAA" }]}>
+                          Email: support@bikeshare.com{"\n"}
+                          Phone: +63 (2) 8123 4567{"\n"}
+                          Hours: Monday to Friday, 8:00 AM to 6:00 PM
+                        </Text>
+
+                        <View style={styles.contactButtonsContainer}>
+                          <TouchableOpacity
+                              style={[styles.contactButton, { backgroundColor: "#00C85320" }]}
+                              onPress={() => handleOpenExternalLink("mailto:support@bikeshare.com", "Email Support")}
+                          >
+                            <Text style={[styles.contactButtonText, { color: "#00C853" }]}>Email Support</Text>
+                          </TouchableOpacity>
+
+                          <TouchableOpacity
+                              style={[styles.contactButton, { backgroundColor: "#7C4DFF20" }]}
+                              onPress={() => handleOpenExternalLink("tel:+6328123456", "Call Support")}
+                          >
+                            <Text style={[styles.contactButtonText, { color: "#7C4DFF" }]}>Call Support</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+
+                      <View style={styles.helpSection}>
+                        <Text style={[styles.helpSectionTitle, { color: "#FFFFFF" }]}>Report an Issue</Text>
+                        <Text style={[styles.contactText, { color: "#AAAAAA" }]}>
+                          If you're experiencing any issues with the app or a bike, please report it to our support team. We'll address it as soon as possible.
+                        </Text>
+
+                        <TouchableOpacity
+                            style={[styles.reportButton, { backgroundColor: "#FF525220" }]}
+                            onPress={() => Alert.alert("Report Issue", "This feature will be available soon.")}
+                        >
+                          <Text style={[styles.reportButtonText, { color: "#FF5252" }]}>Report an Issue</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </ScrollView>
+
+                    <Button
+                        title="Close"
+                        onPress={() => setShowHelpSupportModal(false)}
+                        variant="outline"
+                        style={{ marginTop: 16 }}
+                    />
+                  </View>
                 </View>
-              </View>
-
-              <Button
-                  title="Close"
-                  onPress={() => setShowPaymentMethodsModal(false)}
-                  variant="outline"
-                  style={{ marginTop: 16 }}
-              />
+              </KeyboardAvoidingView>
             </View>
-          </View>
-        </Modal>
-
-        {/* Help & Support Modal */}
-        <Modal
-            visible={showHelpSupportModal}
-            transparent={true}
-            animationType="fade"
-            onRequestClose={() => setShowHelpSupportModal(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContainer, { backgroundColor: "#121212", width: "90%" }]}>
-              <Text style={[styles.modalTitle, { color: "#FFFFFF" }]}>Help & Support</Text>
-
-              <ScrollView style={styles.helpContentScroll}>
-                <View style={styles.helpSection}>
-                  <Text style={[styles.helpSectionTitle, { color: "#FFFFFF" }]}>Frequently Asked Questions</Text>
-
-                  <View style={styles.faqItem}>
-                    <Text style={[styles.faqQuestion, { color: "#FFFFFF" }]}>How do I rent a bike?</Text>
-                    <Text style={[styles.faqAnswer, { color: "#AAAAAA" }]}>
-                      To rent a bike, locate a station on the map, select an available bike, and scan the QR code. The bike will unlock automatically.
-                    </Text>
-                  </View>
-
-                  <View style={styles.faqItem}>
-                    <Text style={[styles.faqQuestion, { color: "#FFFFFF" }]}>How do I end my rental?</Text>
-                    <Text style={[styles.faqAnswer, { color: "#AAAAAA" }]}>
-                      Return the bike to any station and lock it securely. The app will detect when the bike is returned and end your rental automatically.
-                    </Text>
-                  </View>
-
-                  <View style={styles.faqItem}>
-                    <Text style={[styles.faqQuestion, { color: "#FFFFFF" }]}>How much does it cost?</Text>
-                    <Text style={[styles.faqAnswer, { color: "#AAAAAA" }]}>
-                      Rental rates start at ₱20 for regular bikes and ₱30 for electric bikes per hour. You can view the exact price on each bike's details.
-                    </Text>
-                  </View>
-
-                  <View style={styles.faqItem}>
-                    <Text style={[styles.faqQuestion, { color: "#FFFFFF" }]}>What if the bike gets damaged?</Text>
-                    <Text style={[styles.faqAnswer, { color: "#AAAAAA" }]}>
-                      If you notice any damage before renting, please report it through the app. If damage occurs during your rental, contact our support team immediately.
-                    </Text>
-                  </View>
-
-                  <View style={styles.faqItem}>
-                    <Text style={[styles.faqQuestion, { color: "#FFFFFF" }]}>Can I reserve a bike in advance?</Text>
-                    <Text style={[styles.faqAnswer, { color: "#AAAAAA" }]}>
-                      Currently, we don't support bike reservations. Bikes are available on a first-come, first-served basis.
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.helpSection}>
-                  <Text style={[styles.helpSectionTitle, { color: "#FFFFFF" }]}>Contact Us</Text>
-                  <Text style={[styles.contactText, { color: "#AAAAAA" }]}>
-                    Email: support@bikeshare.com{"\n"}
-                    Phone: +63 (2) 8123 4567{"\n"}
-                    Hours: Monday to Friday, 8:00 AM to 6:00 PM
-                  </Text>
-
-                  <View style={styles.contactButtonsContainer}>
-                    <TouchableOpacity
-                        style={[styles.contactButton, { backgroundColor: "#00C85320" }]}
-                        onPress={() => handleOpenExternalLink("mailto:support@bikeshare.com", "Email Support")}
-                    >
-                      <Text style={[styles.contactButtonText, { color: "#00C853" }]}>Email Support</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[styles.contactButton, { backgroundColor: "#7C4DFF20" }]}
-                        onPress={() => handleOpenExternalLink("tel:+6328123456", "Call Support")}
-                    >
-                      <Text style={[styles.contactButtonText, { color: "#7C4DFF" }]}>Call Support</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                <View style={styles.helpSection}>
-                  <Text style={[styles.helpSectionTitle, { color: "#FFFFFF" }]}>Report an Issue</Text>
-                  <Text style={[styles.contactText, { color: "#AAAAAA" }]}>
-                    If you're experiencing any issues with the app or a bike, please report it to our support team. We'll address it as soon as possible.
-                  </Text>
-
-                  <TouchableOpacity
-                      style={[styles.reportButton, { backgroundColor: "#FF525220" }]}
-                      onPress={() => Alert.alert("Report Issue", "This feature will be available soon.")}
-                  >
-                    <Text style={[styles.reportButtonText, { color: "#FF5252" }]}>Report an Issue</Text>
-                  </TouchableOpacity>
-                </View>
-              </ScrollView>
-
-              <Button
-                  title="Close"
-                  onPress={() => setShowHelpSupportModal(false)}
-                  variant="outline"
-                  style={{ marginTop: 16 }}
-              />
-            </View>
-          </View>
-        </Modal>
+        )}
 
         {/* Terms & Privacy Modal */}
-        <Modal
-            visible={showTermsPrivacyModal}
-            transparent={true}
-            animationType="fade"
-            onRequestClose={() => setShowTermsPrivacyModal(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContainer, { backgroundColor: "#121212", width: "90%" }]}>
-              <Text style={[styles.modalTitle, { color: "#FFFFFF" }]}>Terms & Privacy</Text>
+        {/* Terms & Privacy Modal - Custom Implementation */}
+        {showTermsPrivacyModal && (
+            <View style={[StyleSheet.absoluteFill, { zIndex: 1000 }]}>
+              <KeyboardAvoidingView
+                  behavior={Platform.OS === "ios" ? "padding" : "height"}
+                  style={{flex: 1}}
+              >
+                <View style={styles.modalOverlay}>
+                  <View style={[styles.modalContainer, { backgroundColor: "#121212", width: Platform.OS === 'web' ? "90%" : "85%" }]}>
+                    <Text style={[styles.modalTitle, { color: "#FFFFFF" }]}>Terms & Privacy</Text>
 
-              <ScrollView style={styles.termsContentScroll}>
-                <View style={styles.termsSection}>
-                  <Text style={[styles.termsSectionTitle, { color: "#FFFFFF" }]}>Terms of Service</Text>
-                  <Text style={[styles.termsText, { color: "#AAAAAA" }]}>
-                    By using our bike sharing service, you agree to the following terms:{"\n\n"}
+                    <ScrollView style={styles.termsContentScroll}>
+                      <View style={styles.termsSection}>
+                        <Text style={[styles.termsSectionTitle, { color: "#FFFFFF" }]}>Terms of Service</Text>
+                        <Text style={[styles.termsText, { color: "#AAAAAA" }]}>
+                          By using our bike sharing service, you agree to the following terms:{"\n\n"}
 
-                    1. You must be at least 18 years old to use our service.{"\n\n"}
+                          1. You must be at least 18 years old to use our service.{"\n\n"}
 
-                    2. You are responsible for any damage to the bike during your rental period.{"\n\n"}
+                          2. You are responsible for any damage to the bike during your rental period.{"\n\n"}
 
-                    3. Bikes must be returned to designated stations only.{"\n\n"}
+                          3. Bikes must be returned to designated stations only.{"\n\n"}
 
-                    4. Helmets are recommended for all riders.{"\n\n"}
+                          4. Helmets are recommended for all riders.{"\n\n"}
 
-                    5. We reserve the right to charge your account for any damages or unreturned bikes.{"\n\n"}
+                          5. We reserve the right to charge your account for any damages or unreturned bikes.{"\n\n"}
 
-                    6. Service availability may vary based on weather conditions and maintenance schedules.{"\n\n"}
+                          6. Service availability may vary based on weather conditions and maintenance schedules.{"\n\n"}
 
-                    7. Rental fees are calculated based on the duration of your rental and the type of bike.{"\n\n"}
+                          7. Rental fees are calculated based on the duration of your rental and the type of bike.{"\n\n"}
 
-                    8. You agree to follow all traffic laws and regulations while using our bikes.{"\n\n"}
+                          8. You agree to follow all traffic laws and regulations while using our bikes.{"\n\n"}
 
-                    9. We are not responsible for any injuries or accidents that occur during your rental period.{"\n\n"}
+                          9. We are not responsible for any injuries or accidents that occur during your rental period.{"\n\n"}
 
-                    10. We reserve the right to terminate your account if you violate these terms.
-                  </Text>
+                          10. We reserve the right to terminate your account if you violate these terms.
+                        </Text>
+                      </View>
+
+                      <View style={styles.termsSection}>
+                        <Text style={[styles.termsSectionTitle, { color: "#FFFFFF" }]}>Privacy Policy</Text>
+                        <Text style={[styles.termsText, { color: "#AAAAAA" }]}>
+                          We collect the following information:{"\n\n"}
+
+                          1. Personal information (name, email, student ID){"\n\n"}
+
+                          2. Location data during bike rentals{"\n\n"}
+
+                          3. Payment information{"\n\n"}
+
+                          4. Usage statistics{"\n\n"}
+
+                          This information is used to provide and improve our service, process payments, and ensure the security of our bike fleet. We do not sell your personal information to third parties.{"\n\n"}
+
+                          You can request access to or deletion of your data by contacting our support team.{"\n\n"}
+
+                          We use industry-standard security measures to protect your data, but no method of transmission over the internet is 100% secure.{"\n\n"}
+
+                          We may update this privacy policy from time to time. We will notify you of any changes by posting the new privacy policy on this page.
+                        </Text>
+                      </View>
+
+                      <View style={styles.termsSection}>
+                        <Text style={[styles.termsSectionTitle, { color: "#FFFFFF" }]}>Cookie Policy</Text>
+                        <Text style={[styles.termsText, { color: "#AAAAAA" }]}>
+                          We use cookies to enhance your experience on our app. Cookies are small text files that are stored on your device when you use our app.{"\n\n"}
+
+                          We use cookies to:{"\n\n"}
+
+                          1. Remember your login information{"\n\n"}
+
+                          2. Understand how you use our app{"\n\n"}
+
+                          3. Improve our app based on your usage{"\n\n"}
+
+                          You can choose to disable cookies in your browser settings, but this may affect your experience using our app.
+                        </Text>
+                      </View>
+
+                      <View style={styles.termsButtonsContainer}>
+                        <TouchableOpacity
+                            style={styles.termsButton}
+                            onPress={() => handleOpenExternalLink("https://example.com/terms", "Terms of Service")}
+                        >
+                          <Text style={[styles.termsButtonText, { color: "#00C853" }]}>Full Terms of Service</Text>
+                          <ExternalLink size={16} color="#00C853" />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.termsButton}
+                            onPress={() => handleOpenExternalLink("https://example.com/privacy", "Privacy Policy")}
+                        >
+                          <Text style={[styles.termsButtonText, { color: "#00C853" }]}>Full Privacy Policy</Text>
+                          <ExternalLink size={16} color="#00C853" />
+                        </TouchableOpacity>
+                      </View>
+                    </ScrollView>
+
+                    <Button
+                        title="Close"
+                        onPress={() => setShowTermsPrivacyModal(false)}
+                        variant="outline"
+                        style={{ marginTop: 16 }}
+                    />
+                  </View>
                 </View>
-
-                <View style={styles.termsSection}>
-                  <Text style={[styles.termsSectionTitle, { color: "#FFFFFF" }]}>Privacy Policy</Text>
-                  <Text style={[styles.termsText, { color: "#AAAAAA" }]}>
-                    We collect the following information:{"\n\n"}
-
-                    1. Personal information (name, email, student ID){"\n\n"}
-
-                    2. Location data during bike rentals{"\n\n"}
-
-                    3. Payment information{"\n\n"}
-
-                    4. Usage statistics{"\n\n"}
-
-                    This information is used to provide and improve our service, process payments, and ensure the security of our bike fleet. We do not sell your personal information to third parties.{"\n\n"}
-
-                    You can request access to or deletion of your data by contacting our support team.{"\n\n"}
-
-                    We use industry-standard security measures to protect your data, but no method of transmission over the internet is 100% secure.{"\n\n"}
-
-                    We may update this privacy policy from time to time. We will notify you of any changes by posting the new privacy policy on this page.
-                  </Text>
-                </View>
-
-                <View style={styles.termsSection}>
-                  <Text style={[styles.termsSectionTitle, { color: "#FFFFFF" }]}>Cookie Policy</Text>
-                  <Text style={[styles.termsText, { color: "#AAAAAA" }]}>
-                    We use cookies to enhance your experience on our app. Cookies are small text files that are stored on your device when you use our app.{"\n\n"}
-
-                    We use cookies to:{"\n\n"}
-
-                    1. Remember your login information{"\n\n"}
-
-                    2. Understand how you use our app{"\n\n"}
-
-                    3. Improve our app based on your usage{"\n\n"}
-
-                    You can choose to disable cookies in your browser settings, but this may affect your experience using our app.
-                  </Text>
-                </View>
-
-                <View style={styles.termsButtonsContainer}>
-                  <TouchableOpacity
-                      style={styles.termsButton}
-                      onPress={() => handleOpenExternalLink("https://example.com/terms", "Terms of Service")}
-                  >
-                    <Text style={[styles.termsButtonText, { color: "#00C853" }]}>Full Terms of Service</Text>
-                    <ExternalLink size={16} color="#00C853" />
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                      style={styles.termsButton}
-                      onPress={() => handleOpenExternalLink("https://example.com/privacy", "Privacy Policy")}
-                  >
-                    <Text style={[styles.termsButtonText, { color: "#00C853" }]}>Full Privacy Policy</Text>
-                    <ExternalLink size={16} color="#00C853" />
-                  </TouchableOpacity>
-                </View>
-              </ScrollView>
-
-              <Button
-                  title="Close"
-                  onPress={() => setShowTermsPrivacyModal(false)}
-                  variant="outline"
-                  style={{ marginTop: 16 }}
-              />
+              </KeyboardAvoidingView>
             </View>
-          </View>
-        </Modal>
-
+        )}
         <TabBar />
       </SafeAreaView>
   );
 }
-
-
 
 const styles = StyleSheet.create({
   container: {
@@ -694,10 +704,15 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
-  scrollViewContent: {
-    paddingBottom: 100, // Extra space for TabBar
+  header: {
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
   },
   loadingContainer: {
     flex: 1,
@@ -706,58 +721,35 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  header: {
-    paddingTop: Platform.OS === "android" ? 16 : 8,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#121212",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    letterSpacing: 0.5,
   },
   walletCard: {
-    marginTop: 24,
-    marginBottom: 24,
-    padding: 20,
-    borderRadius: 16,
-    elevation: 4,
+    marginVertical: 24,
   },
   walletHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 8,
   },
   walletTitle: {
     fontSize: 16,
-    fontWeight: "600",
-    letterSpacing: 0.3,
+    fontWeight: "500",
   },
   walletBalance: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "bold",
     marginBottom: 16,
-    letterSpacing: 0.5,
   },
   addFundsButton: {
     alignSelf: "flex-start",
-    paddingHorizontal: 30,
-    height: 44,
-    borderRadius: 22,
   },
   menuSection: {
     marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: "bold",
     marginBottom: 16,
-    letterSpacing: 0.3,
   },
   menuItem: {
     flexDirection: "row",
@@ -766,11 +758,11 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
-    elevation: 2,
   },
   menuItemLeft: {
     flexDirection: "row",
     alignItems: "center",
+    flex: 1,
   },
   menuIconContainer: {
     width: 40,
@@ -778,84 +770,73 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 16,
+    marginRight: 12,
   },
   menuItemText: {
     fontSize: 16,
-    fontWeight: "500",
-    letterSpacing: 0.2,
+    flex: 1,
   },
   logoutButton: {
-    marginTop: 16,
-    marginBottom: 32,
-    borderRadius: 12,
-    borderColor: "#333333",
-    height: 56,
-    elevation: 2,
+    marginBottom: 40,
   },
+  // Modal styles
   modalOverlay: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    // Add these to lock positioning:
-    position: 'absolute',
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    // Block Android system UI interactions:
-    elevation: 999, // Higher than any other element
-    zIndex: 999,
   },
   modalContainer: {
-    backgroundColor: '#121212',
-    width: '90%',
-    maxHeight: '80%', // Prevents overflow
-    borderRadius: 12,
-    padding: 20,
-    // Add these for Android stability:
-    elevation: 1000, // Ensures modal stays on top
-    zIndex: 1000,
-  },
-  modalContent: {
-    width: '80%',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: Platform.OS === 'web' ? "80%" : "85%",
+    borderRadius: 16,
+    padding: 24,
+    alignItems: "center",
+    maxHeight: Platform.OS === 'web' ? "80%" : "70%",
+    alignSelf: "center",
+    backgroundColor: "#121212",
+    ...Platform.select({
+      android: {
+        elevation: 5,
+        position: "relative",
+        marginVertical: 'auto',
+        marginHorizontal: 'auto',
+      },
+    }),
   },
   modalTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    textAlign: 'center',
-    fontFamily: Platform.OS === 'android' ? 'sans-serif-medium' : undefined,
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 8,
+    textAlign: "center",
   },
   modalSubtitle: {
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: 'center',
-    width: '100%',
+    fontSize: 14,
+    marginBottom: 24,
+    textAlign: "center",
   },
   amountInput: {
-    width: '100%',
+    width: "100%",
     height: 50,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 25,
     paddingHorizontal: 16,
+    fontSize: 16,
     marginBottom: 24,
-    fontSize: 18,
-    textAlign: 'center',
+    textAlign: "center",
   },
   modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "space-between",
   },
   modalButton: {
-    width: '48%',
+    flex: 1,
+    marginHorizontal: 8,
   },
   // Payment methods styles
   paymentMethodsContainer: {
@@ -931,7 +912,7 @@ const styles = StyleSheet.create({
   // Help & Support styles
   helpContentScroll: {
     width: "100%",
-    maxHeight: 400,
+    maxHeight: Platform.OS === 'web' ? 400 : 300,
   },
   helpSection: {
     marginBottom: 24,
@@ -987,7 +968,7 @@ const styles = StyleSheet.create({
   // Terms & Privacy styles
   termsContentScroll: {
     width: "100%",
-    maxHeight: 400,
+    maxHeight: Platform.OS === 'web' ? 400 : 300,
   },
   termsSection: {
     marginBottom: 24,

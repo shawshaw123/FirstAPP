@@ -2,6 +2,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { Stack, SplashScreen } from "expo-router";
 import { useEffect } from "react";
+import '../Firebase/config';  // Add this import to initialize Firebase
 import { Platform, StatusBar, View } from "react-native";
 import { ErrorBoundary } from "@/app/error-boundary";
 import { ThemeProvider, useTheme } from "@/components/theme-context";

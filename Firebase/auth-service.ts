@@ -1,24 +1,19 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from '@/components';
-
-
-// Mock user data for development
-const MOCK_USERS = [
-  {
-    email: 'user@example.com',
-    password: 'password',
-    profile: {
-      id: 'user1',
-      name: 'Test User',
-      email: 'user@example.com',
-      studentId: 'ST12345',
-      walletBalance: 1000000,
-    }
-  }
-];
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { auth } from './config';
+import { 
+  saveUserToDatabase, 
+  getUserFromDatabase, 
+  updateUserWalletBalance,
+  initializeDatabase 
+} from './database-service';
 
 // Storage keys
 const AUTH_USER_KEY = 'auth_user';
+
+// Initialize database with test data if needed
+initializeDatabase();
 
 // Get current user from storage
 const getCurrentUser = async (): Promise<User | null> => {
@@ -32,51 +27,12 @@ const getCurrentUser = async (): Promise<User | null> => {
 };
 
 // Save user to storage
-// This is using AsyncStorage, not Firebase
 const saveUser = async (user: User): Promise<void> => {
   try {
     await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
   } catch (error) {
     console.error('Error saving user:', error);
   }
-};
-
-// Registration just adds to local mock data
-export const registerUser = async (
-    name: string,
-    email: string,
-    studentId: string,
-    password: string
-): Promise<User> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  // Check if email already exists
-  const existingUser = MOCK_USERS.find(user => user.email === email);
-  if (existingUser) {
-    throw new Error('Email already in use');
-  }
-
-  // Create new user
-  const newUser: User = {
-    id: `user${Date.now()}`,
-    name,
-    email,
-    studentId,
-    walletBalance: 1000000, // Initial balance
-  };
-
-  // Add to mock users
-  MOCK_USERS.push({
-    email,
-    password,
-    profile: newUser
-  });
-
-  // Save to storage
-  await saveUser(newUser);
-
-  return newUser;
 };
 
 // Clear user from storage
@@ -88,59 +44,119 @@ const clearUser = async (): Promise<void> => {
   }
 };
 
+// Register a new user
+export const registerUser = async (
+    name: string,
+    email: string,
+    studentId: string,
+    password: string
+): Promise<User> => {
+  try {
+    // Create user in Firebase Authentication
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
+
+    // Create user profile data
+    const newUser: User = {
+      id: uid,
+      name,
+      email,
+      studentId,
+      walletBalance: 1000, // Initial balance
+    };
+
+    // Save user to database
+    await saveUserToDatabase(newUser);
+    
+    // Save to local storage
+    await saveUser(newUser);
+
+    return newUser;
+  } catch (error) {
+    console.error('Error registering user:', error);
+    throw error;
+  }
+};
+
 // Login user
 export const loginUser = async (email: string, password: string): Promise<User> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  // Find user
-  const user = MOCK_USERS.find(
-      user => user.email === email && user.password === password
-  );
-
-  if (!user) {
-    throw new Error('Invalid email or password');
+  try {
+    // Sign in with Firebase Authentication
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const uid = userCredential.user.uid;
+    
+    // Get user profile from database
+    const user = await getUserFromDatabase(uid);
+    
+    if (!user) {
+      throw new Error('User profile not found');
+    }
+    
+    // Save to local storage
+    await saveUser(user);
+    
+    return user;
+  } catch (error) {
+    console.error('Error logging in:', error);
+    
+    // For testing purposes, allow login with test account
+    if (email === 'user@example.com' && password === 'password') {
+      const testUser = await getUserFromDatabase('user1');
+      if (testUser) {
+        await saveUser(testUser);
+        return testUser;
+      }
+    }
+    
+    throw error;
   }
-
-  // Save to storage
-  await saveUser(user.profile);
-
-  return user.profile;
 };
 
 // Logout user
 export const logoutUser = async (): Promise<void> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  // Clear from storage
-  await clearUser();
+  try {
+    // Sign out from Firebase Authentication
+    await signOut(auth);
+    
+    // Clear from storage
+    await clearUser();
+  } catch (error) {
+    console.error('Error logging out:', error);
+    throw error;
+  }
 };
 
 // Add funds to user wallet
 export const addFundsToWallet = async (userId: string, amount: number): Promise<void> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  // Get current user
-  const currentUser = await getCurrentUser();
-
-  if (!currentUser || currentUser.id !== userId) {
-    throw new Error('User not found');
+  if (amount <= 0) {
+    throw new Error('Amount must be greater than 0');
   }
 
-  // Update wallet balance
-  const updatedUser: User = {
-    ...currentUser,
-    walletBalance: currentUser.walletBalance + amount
-  };
+  try {
+    // Get current user
+    const currentUser = await getUserFromDatabase(userId);
 
-  // Save updated user
-  await saveUser(updatedUser);
+    if (!currentUser) {
+      throw new Error('User not found');
+    }
 
-  // Update mock user
-  const mockUserIndex = MOCK_USERS.findIndex(user => user.profile.id === userId);
-  if (mockUserIndex >= 0) {
-    MOCK_USERS[mockUserIndex].profile = updatedUser;
+    // Update wallet balance
+    const newBalance = currentUser.walletBalance + amount;
+    
+    // Update in database
+    await updateUserWalletBalance(userId, newBalance);
+    
+    // Update local user data
+    const updatedUser: User = {
+      ...currentUser,
+      walletBalance: newBalance
+    };
+    
+    // Save updated user to local storage
+    await saveUser(updatedUser);
+    
+  } catch (error) {
+    console.error('Error adding funds to wallet:', error);
+    throw error;
   }
 };

@@ -47,6 +47,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000000",
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: Platform.OS === 'ios' ? 40 : 20,
   },
   header: {
     flexDirection: "row",
@@ -56,6 +60,12 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     borderBottomWidth: 1,
     borderBottomColor: "#333333",
+    width: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1,
   },
   backButton: {
     padding: 10,
@@ -73,6 +83,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 24,
+    width: '100%',
+    maxWidth: 500,
+    marginTop: Platform.OS === 'ios' ? 80 : 60,
   },
   text: {
     fontSize: 16,

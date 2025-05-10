@@ -13,6 +13,7 @@ import {
   Platform,
   StatusBar,
   Dimensions,
+  KeyboardAvoidingView
 } from "react-native";
 import { useRouter } from "expo-router";
 import TabBar from "@/components/TabBar";
@@ -464,230 +465,232 @@ export default function RentalsScreen() {
           )}
         </ScrollView>
 
-        {/* Booking Modal */}
-        <Modal
-            visible={showBookingModal}
-            animationType="slide"
-            transparent={true}
-            onRequestClose={handleCloseBookingModal}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContainer, { backgroundColor: "#121212" }]}>
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: "#FFFFFF" }]}>Book a Bike</Text>
-                <TouchableOpacity onPress={handleCloseBookingModal}>
-                  <X size={24} color="#FFFFFF" />
-                </TouchableOpacity>
-              </View>
+        {/* Custom Modal Implementation instead of using Modal component */}
+        {showBookingModal && (
+          <View style={[StyleSheet.absoluteFill, { zIndex: 1000 }]}>
+            <KeyboardAvoidingView 
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              style={{flex: 1}}
+            >
+              <View style={styles.modalOverlay}>
+                <View style={[styles.modalContainer, { backgroundColor: "#121212" }]}>
+                  <View style={styles.modalHeader}>
+                    <Text style={[styles.modalTitle, { color: "#FFFFFF" }]}>Book a Bike</Text>
+                    <TouchableOpacity onPress={handleCloseBookingModal}>
+                      <X size={24} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </View>
 
-              <ScrollView style={styles.modalContent}>
-                <Text style={[styles.inputLabel, { color: "#AAAAAA" }]}>Select Station</Text>
-                <TouchableOpacity
-                    style={[styles.pickerButton, { backgroundColor: "#1A1A1A" }]}
-                    onPress={() => setShowStationPicker(!showStationPicker)}
-                >
-                  <Text style={[styles.pickerButtonText, { color: "#FFFFFF" }]}>{selectedStation.name}</Text>
-                  <ChevronDown size={20} color="#AAAAAA" />
-                </TouchableOpacity>
+                  <ScrollView style={styles.modalContent}>
+                    <Text style={[styles.inputLabel, { color: "#AAAAAA" }]}>Select Station</Text>
+                    <TouchableOpacity
+                        style={[styles.pickerButton, { backgroundColor: "#1A1A1A" }]}
+                        onPress={() => setShowStationPicker(!showStationPicker)}
+                    >
+                      <Text style={[styles.pickerButtonText, { color: "#FFFFFF" }]}>{selectedStation.name}</Text>
+                      <ChevronDown size={20} color="#AAAAAA" />
+                    </TouchableOpacity>
 
-                {showStationPicker && (
-                    <View style={[styles.pickerOptions, { backgroundColor: "#1A1A1A" }]}>
-                      {stations.map((station) => (
-                          <TouchableOpacity
-                              key={station.id}
-                              style={styles.pickerOption}
-                              onPress={() => {
-                                setSelectedStation(station);
-                                setShowStationPicker(false);
-                              }}
-                          >
-                            <Text
-                                style={[
-                                  styles.pickerOptionText,
-                                  {
-                                    color: station.id === selectedStation.id ? "#00C853" : "#FFFFFF"
-                                  }
-                                ]}
-                            >
-                              {station.name}
-                            </Text>
-                          </TouchableOpacity>
-                      ))}
-                    </View>
-                )}
+                    {showStationPicker && (
+                        <View style={[styles.pickerOptions, { backgroundColor: "#1A1A1A" }]}>
+                          {stations.map((station) => (
+                              <TouchableOpacity
+                                  key={station.id}
+                                  style={styles.pickerOption}
+                                  onPress={() => {
+                                    setSelectedStation(station);
+                                    setShowStationPicker(false);
+                                  }}
+                              >
+                                <Text
+                                    style={[
+                                      styles.pickerOptionText,
+                                      {
+                                        color: station.id === selectedStation.id ? "#00C853" : "#FFFFFF"
+                                      }
+                                    ]}
+                                >
+                                  {station.name}
+                                </Text>
+                              </TouchableOpacity>
+                          ))}
+                        </View>
+                    )}
 
-                <Text style={[styles.inputLabel, { color: "#AAAAAA" }]}>Select Date</Text>
-                <TouchableOpacity
-                    style={[styles.pickerButton, { backgroundColor: "#1A1A1A" }]}
-                    onPress={toggleCalendarView}
-                >
-                  <Text style={[styles.pickerButtonText, { color: "#FFFFFF" }]}>
-                    {bookingDate.toLocaleDateString()}
-                  </Text>
-                  <Calendar size={20} color="#AAAAAA" />
-                </TouchableOpacity>
+                    <Text style={[styles.inputLabel, { color: "#AAAAAA" }]}>Select Date</Text>
+                    <TouchableOpacity
+                        style={[styles.pickerButton, { backgroundColor: "#1A1A1A" }]}
+                        onPress={toggleCalendarView}
+                    >
+                      <Text style={[styles.pickerButtonText, { color: "#FFFFFF" }]}>
+                        {bookingDate.toLocaleDateString()}
+                      </Text>
+                      <Calendar size={20} color="#AAAAAA" />
+                    </TouchableOpacity>
 
-                {calendarView && (
-                    <View style={[styles.calendarContainer, { backgroundColor: "#1A1A1A" }]}>
-                      <Text style={[styles.calendarMonth, { color: "#FFFFFF" }]}>{currentMonth}</Text>
+                    {calendarView && (
+                        <View style={[styles.calendarContainer, { backgroundColor: "#1A1A1A" }]}>
+                          <Text style={[styles.calendarMonth, { color: "#FFFFFF" }]}>{currentMonth}</Text>
 
-                      <View style={styles.calendarWeekdays}>
-                        {daysOfWeek.map((day, index) => (
-                            <Text key={index} style={[styles.calendarWeekday, { color: "#AAAAAA" }]}>
-                              {day}
-                            </Text>
-                        ))}
+                          <View style={styles.calendarWeekdays}>
+                            {daysOfWeek.map((day, index) => (
+                                <Text key={index} style={[styles.calendarWeekday, { color: "#AAAAAA" }]}>
+                                  {day}
+                                </Text>
+                            ))}
+                          </View>
+
+                          <View style={styles.calendarDays}>
+                            {calendarDays.map((day, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={[
+                                      styles.calendarDay,
+                                      day && day.getTime() === selectedDay.getTime() && { backgroundColor: "#00C85330" },
+                                      day && day.getTime() === new Date().setHours(0, 0, 0, 0) && { borderColor: "#00C853", borderWidth: 1 }
+                                    ]}
+                                    onPress={() => day && handleDayPress(day)}
+                                    disabled={!day || day < new Date(new Date().setHours(0, 0, 0, 0))}
+                                >
+                                  {day ? (
+                                      <Text
+                                          style={[
+                                            styles.calendarDayText,
+                                            {
+                                              color: day < new Date(new Date().setHours(0, 0, 0, 0))
+                                                  ? "#555555"
+                                                  : day.getTime() === selectedDay.getTime()
+                                                      ? "#00C853"
+                                                      : "#FFFFFF"
+                                            }
+                                          ]}
+                                      >
+                                        {day.getDate()}
+                                      </Text>
+                                  ) : (
+                                      <Text style={{ color: "transparent" }}>0</Text>
+                                  )}
+                                </TouchableOpacity>
+                            ))}
+                          </View>
+                        </View>
+                    )}
+
+                    {showDatePicker && Platform.OS !== 'web' && (
+                        <DateTimePicker
+                            value={bookingDate}
+                            mode="date"
+                            display="default"
+                            onChange={handleDateChange}
+                            minimumDate={new Date()}
+                        />
+                    )}
+
+                    <Text style={[styles.inputLabel, { color: "#AAAAAA" }]}>Select Time</Text>
+                    <TouchableOpacity
+                        style={[styles.pickerButton, { backgroundColor: "#1A1A1A" }]}
+                        onPress={() => setShowTimePicker(true)}
+                    >
+                      <Text style={[styles.pickerButtonText, { color: "#FFFFFF" }]}>
+                        {bookingTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </Text>
+                      <Clock size={20} color="#AAAAAA" />
+                    </TouchableOpacity>
+
+                    {showTimePicker && Platform.OS !== 'web' && (
+                        <DateTimePicker
+                            value={bookingTime}
+                            mode="time"
+                            display="default"
+                            onChange={handleTimeChange}
+                        />
+                    )}
+
+                    <Text style={[styles.inputLabel, { color: "#AAAAAA" }]}>Duration</Text>
+                    <TouchableOpacity
+                        style={[styles.pickerButton, { backgroundColor: "#1A1A1A" }]}
+                        onPress={() => setShowDurationPicker(!showDurationPicker)}
+                    >
+                      <Text style={[styles.pickerButtonText, { color: "#FFFFFF" }]}>{bookingDuration}</Text>
+                      <ChevronDown size={20} color="#AAAAAA" />
+                    </TouchableOpacity>
+
+                    {showDurationPicker && (
+                        <View style={[styles.pickerOptions, { backgroundColor: "#1A1A1A" }]}>
+                          {pricingPlans.map((plan, index) => (
+                              <TouchableOpacity
+                                  key={index}
+                                  style={styles.pickerOption}
+                                  onPress={() => {
+                                    setBookingDuration(plan.duration);
+                                    setShowDurationPicker(false);
+                                  }}
+                              >
+                                <Text
+                                    style={[
+                                      styles.pickerOptionText,
+                                      {
+                                        color: plan.duration === bookingDuration ? "#00C853" : "#FFFFFF"
+                                      }
+                                    ]}
+                                >
+                                  {plan.duration} - ₱{plan.price}{plan.perHour ? "/hour" : ""}
+                                </Text>
+                              </TouchableOpacity>
+                          ))}
+                        </View>
+                    )}
+
+                    <View style={styles.bookingSummary}>
+                      <Text style={[styles.summaryTitle, { color: "#FFFFFF" }]}>Booking Summary</Text>
+                      <View style={styles.summaryRow}>
+                        <Text style={[styles.summaryLabel, { color: "#AAAAAA" }]}>Station:</Text>
+                        <Text style={[styles.summaryValue, { color: "#FFFFFF" }]}>{selectedStation.name}</Text>
                       </View>
-
-                      <View style={styles.calendarDays}>
-                        {calendarDays.map((day, index) => (
-                            <TouchableOpacity
-                                key={index}
-                                style={[
-                                  styles.calendarDay,
-                                  day && day.getTime() === selectedDay.getTime() && { backgroundColor: "#00C85330" },
-                                  day && day.getTime() === new Date().setHours(0, 0, 0, 0) && { borderColor: "#00C853", borderWidth: 1 }
-                                ]}
-                                onPress={() => day && handleDayPress(day)}
-                                disabled={!day || day < new Date(new Date().setHours(0, 0, 0, 0))}
-                            >
-                              {day ? (
-                                  <Text
-                                      style={[
-                                        styles.calendarDayText,
-                                        {
-                                          color: day < new Date(new Date().setHours(0, 0, 0, 0))
-                                              ? "#555555"
-                                              : day.getTime() === selectedDay.getTime()
-                                                  ? "#00C853"
-                                                  : "#FFFFFF"
-                                        }
-                                      ]}
-                                  >
-                                    {day.getDate()}
-                                  </Text>
-                              ) : (
-                                  <Text style={{ color: "transparent" }}>0</Text>
-                              )}
-                            </TouchableOpacity>
-                        ))}
+                      <View style={styles.summaryRow}>
+                        <Text style={[styles.summaryLabel, { color: "#AAAAAA" }]}>Date:</Text>
+                        <Text style={[styles.summaryValue, { color: "#FFFFFF" }]}>{bookingDate.toLocaleDateString()}</Text>
+                      </View>
+                      <View style={styles.summaryRow}>
+                        <Text style={[styles.summaryLabel, { color: "#AAAAAA" }]}>Time:</Text>
+                        <Text style={[styles.summaryValue, { color: "#FFFFFF" }]}>
+                          {bookingTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Text>
+                      </View>
+                      <View style={styles.summaryRow}>
+                        <Text style={[styles.summaryLabel, { color: "#AAAAAA" }]}>Duration:</Text>
+                        <Text style={[styles.summaryValue, { color: "#FFFFFF" }]}>{bookingDuration}</Text>
+                      </View>
+                      <View style={styles.summaryRow}>
+                        <Text style={[styles.summaryLabel, { color: "#AAAAAA" }]}>Price:</Text>
+                        <Text style={[styles.summaryValue, { color: "#00C853", fontWeight: "bold" }]}>
+                          ₱{pricingPlans.find(plan => plan.duration === bookingDuration)?.price || 0}
+                        </Text>
                       </View>
                     </View>
-                )}
+                  </ScrollView>
 
-                {showDatePicker && Platform.OS !== 'web' && (
-                    <DateTimePicker
-                        value={bookingDate}
-                        mode="date"
-                        display="default"
-                        onChange={handleDateChange}
-                        minimumDate={new Date()}
+                  <View style={styles.modalFooter}>
+                    <Button
+                        title="Confirm Booking"
+                        onPress={handleConfirmBooking}
+                        variant="primary"
+                        style={styles.confirmButton}
+                        isLoading={isBookingProcessing}
                     />
-                )}
-
-                <Text style={[styles.inputLabel, { color: "#AAAAAA" }]}>Select Time</Text>
-                <TouchableOpacity
-                    style={[styles.pickerButton, { backgroundColor: "#1A1A1A" }]}
-                    onPress={() => setShowTimePicker(true)}
-                >
-                  <Text style={[styles.pickerButtonText, { color: "#FFFFFF" }]}>
-                    {bookingTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </Text>
-                  <Clock size={20} color="#AAAAAA" />
-                </TouchableOpacity>
-
-                {showTimePicker && Platform.OS !== 'web' && (
-                    <DateTimePicker
-                        value={bookingTime}
-                        mode="time"
-                        display="default"
-                        onChange={handleTimeChange}
+                    <Button
+                        title="Cancel"
+                        onPress={handleCloseBookingModal}
+                        variant="outline"
+                        style={styles.cancelButton}
+                        disabled={isBookingProcessing}
                     />
-                )}
-
-                <Text style={[styles.inputLabel, { color: "#AAAAAA" }]}>Duration</Text>
-                <TouchableOpacity
-                    style={[styles.pickerButton, { backgroundColor: "#1A1A1A" }]}
-                    onPress={() => setShowDurationPicker(!showDurationPicker)}
-                >
-                  <Text style={[styles.pickerButtonText, { color: "#FFFFFF" }]}>{bookingDuration}</Text>
-                  <ChevronDown size={20} color="#AAAAAA" />
-                </TouchableOpacity>
-
-                {showDurationPicker && (
-                    <View style={[styles.pickerOptions, { backgroundColor: "#1A1A1A" }]}>
-                      {pricingPlans.map((plan, index) => (
-                          <TouchableOpacity
-                              key={index}
-                              style={styles.pickerOption}
-                              onPress={() => {
-                                setBookingDuration(plan.duration);
-                                setShowDurationPicker(false);
-                              }}
-                          >
-                            <Text
-                                style={[
-                                  styles.pickerOptionText,
-                                  {
-                                    color: plan.duration === bookingDuration ? "#00C853" : "#FFFFFF"
-                                  }
-                                ]}
-                            >
-                              {plan.duration} - ₱{plan.price}{plan.perHour ? "/hour" : ""}
-                            </Text>
-                          </TouchableOpacity>
-                      ))}
-                    </View>
-                )}
-
-                <View style={styles.bookingSummary}>
-                  <Text style={[styles.summaryTitle, { color: "#FFFFFF" }]}>Booking Summary</Text>
-                  <View style={styles.summaryRow}>
-                    <Text style={[styles.summaryLabel, { color: "#AAAAAA" }]}>Station:</Text>
-                    <Text style={[styles.summaryValue, { color: "#FFFFFF" }]}>{selectedStation.name}</Text>
-                  </View>
-                  <View style={styles.summaryRow}>
-                    <Text style={[styles.summaryLabel, { color: "#AAAAAA" }]}>Date:</Text>
-                    <Text style={[styles.summaryValue, { color: "#FFFFFF" }]}>{bookingDate.toLocaleDateString()}</Text>
-                  </View>
-                  <View style={styles.summaryRow}>
-                    <Text style={[styles.summaryLabel, { color: "#AAAAAA" }]}>Time:</Text>
-                    <Text style={[styles.summaryValue, { color: "#FFFFFF" }]}>
-                      {bookingTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                  </View>
-                  <View style={styles.summaryRow}>
-                    <Text style={[styles.summaryLabel, { color: "#AAAAAA" }]}>Duration:</Text>
-                    <Text style={[styles.summaryValue, { color: "#FFFFFF" }]}>{bookingDuration}</Text>
-                  </View>
-                  <View style={styles.summaryRow}>
-                    <Text style={[styles.summaryLabel, { color: "#AAAAAA" }]}>Price:</Text>
-                    <Text style={[styles.summaryValue, { color: "#00C853", fontWeight: "bold" }]}>
-                      ₱{pricingPlans.find(plan => plan.duration === bookingDuration)?.price || 0}
-                    </Text>
                   </View>
                 </View>
-              </ScrollView>
-
-              <View style={styles.modalFooter}>
-                <Button
-                    title="Confirm Booking"
-                    onPress={handleConfirmBooking}
-                    variant="primary"
-                    style={styles.confirmButton}
-                    isLoading={isBookingProcessing}
-                />
-                <Button
-                    title="Cancel"
-                    onPress={handleCloseBookingModal}
-                    variant="outline"
-                    style={styles.cancelButton}
-                    disabled={isBookingProcessing}
-                />
               </View>
-            </View>
+            </KeyboardAvoidingView>
           </View>
-        </Modal>
+        )}
 
         <TabBar />
       </SafeAreaView>
@@ -865,6 +868,11 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.7)",
     justifyContent: "center",
     alignItems: "center",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   modalContainer: {
     width: width * 0.9,
@@ -872,6 +880,14 @@ const styles = StyleSheet.create({
     maxHeight: "80%",
     backgroundColor: "#121212",
     elevation: 5,
+    ...Platform.select({
+      android: {
+        alignSelf: "center", // Ensure centered
+        position: "relative",
+        marginVertical: 'auto',
+        marginHorizontal: 'auto',
+      },
+    }),
   },
   modalHeader: {
     flexDirection: "row",

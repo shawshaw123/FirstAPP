@@ -9,12 +9,15 @@ import {
     ScrollView,
     Share,
     Platform,
-    StatusBar,
+    Dimensions,
+    KeyboardAvoidingView,
 } from 'react-native';
 import { useTheme } from '@/components/theme-context';
 import { useLogging } from '@/hooks/use-logging';
 import { LogEntry, LogLevel } from '@/services/loggers';
 import { X, Share2, Trash2, Filter } from 'lucide-react-native';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface LogViewerProps {
     visible: boolean;
@@ -131,16 +134,11 @@ export default function LogViewer({ visible, onClose }: LogViewerProps) {
             animationType="slide"
             transparent={false}
             onRequestClose={onClose}
-            statusBarTranslucent={Platform.OS === 'android'}
         >
-            <StatusBar
-                backgroundColor={Platform.OS === 'android' ? colors.background : undefined}
-                barStyle={Platform.OS === 'android' ? 'dark-content' : 'default'}
-            />
             <View style={[styles.container, { backgroundColor: colors.background }]}>
                 <View style={styles.header}>
                     <Text style={[styles.title, { color: colors.text }]}>Application Logs</Text>
-                    <TouchableOpacity onPress={onClose} style={styles.closeButton} activeOpacity={0.7}>
+                    <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                         <X size={24} color={colors.text} />
                     </TouchableOpacity>
                 </View>
@@ -149,7 +147,6 @@ export default function LogViewer({ visible, onClose }: LogViewerProps) {
                     <TouchableOpacity
                         style={[styles.toolbarButton, { backgroundColor: colors.cardBackground }]}
                         onPress={() => setShowFilterModal(true)}
-                        activeOpacity={0.7}
                     >
                         <Filter size={20} color={filterLevel ? colors.primary : colors.text} />
                         <Text style={[styles.toolbarButtonText, { color: colors.text }]}>
@@ -160,7 +157,6 @@ export default function LogViewer({ visible, onClose }: LogViewerProps) {
                     <TouchableOpacity
                         style={[styles.toolbarButton, { backgroundColor: colors.cardBackground }]}
                         onPress={handleShareLogs}
-                        activeOpacity={0.7}
                     >
                         <Share2 size={20} color={colors.text} />
                         <Text style={[styles.toolbarButtonText, { color: colors.text }]}>Share</Text>
@@ -169,7 +165,6 @@ export default function LogViewer({ visible, onClose }: LogViewerProps) {
                     <TouchableOpacity
                         style={[styles.toolbarButton, { backgroundColor: colors.cardBackground }]}
                         onPress={handleClearLogs}
-                        activeOpacity={0.7}
                     >
                         <Trash2 size={20} color={colors.error} />
                         <Text style={[styles.toolbarButtonText, { color: colors.error }]}>Clear</Text>
@@ -197,7 +192,6 @@ export default function LogViewer({ visible, onClose }: LogViewerProps) {
                     transparent={true}
                     animationType="fade"
                     onRequestClose={() => setSelectedLog(null)}
-                    statusBarTranslucent={Platform.OS === 'android'}
                 >
                     <View style={styles.detailModalOverlay}>
                         <View style={[styles.detailModalContent, { backgroundColor: colors.cardBackground }]}>
@@ -285,7 +279,6 @@ export default function LogViewer({ visible, onClose }: LogViewerProps) {
                     transparent={true}
                     animationType="fade"
                     onRequestClose={() => setShowFilterModal(false)}
-                    statusBarTranslucent={Platform.OS === 'android'}
                 >
                     <View style={styles.detailModalOverlay}>
                         <View style={[styles.filterModalContent, { backgroundColor: colors.cardBackground }]}>
@@ -342,7 +335,7 @@ export default function LogViewer({ visible, onClose }: LogViewerProps) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: Platform.OS === 'ios' ? 50 : (StatusBar.currentHeight || 0) + 10,
+        paddingTop: Platform.OS === 'ios' ? 50 : 20,
     },
     header: {
         flexDirection: 'row',
@@ -350,20 +343,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingBottom: 16,
-        elevation: Platform.OS === 'android' ? 3 : 0,
-        shadowColor: Platform.OS === 'ios' ? "#000" : "transparent",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
     },
     title: {
         fontSize: 20,
         fontWeight: 'bold',
-        letterSpacing: Platform.OS === 'android' ? 0.5 : 0,
     },
     closeButton: {
         padding: 8,
-        borderRadius: 20,
     },
     toolbar: {
         flexDirection: 'row',
@@ -374,13 +360,11 @@ const styles = StyleSheet.create({
     toolbarButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 10,
+        padding: 8,
         borderRadius: 8,
-        elevation: Platform.OS === 'android' ? 2 : 0,
     },
     toolbarButtonText: {
         marginLeft: 8,
-        letterSpacing: 0.3,
     },
     logsList: {
         paddingHorizontal: 16,
@@ -389,7 +373,6 @@ const styles = StyleSheet.create({
         padding: 12,
         borderRadius: 8,
         marginBottom: 8,
-        elevation: Platform.OS === 'android' ? 1 : 0,
     },
     logHeader: {
         flexDirection: 'row',
@@ -398,16 +381,13 @@ const styles = StyleSheet.create({
     },
     logTime: {
         fontSize: 12,
-        letterSpacing: 0.2,
     },
     logLevel: {
         fontSize: 12,
         fontWeight: 'bold',
-        letterSpacing: 0.2,
     },
     logMessage: {
         fontSize: 14,
-        letterSpacing: 0.2,
     },
     emptyContainer: {
         flex: 1,
@@ -416,7 +396,6 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         fontSize: 16,
-        letterSpacing: 0.3,
     },
     detailModalOverlay: {
         flex: 1,
@@ -425,11 +404,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     detailModalContent: {
-        width: '90%',
-        maxHeight: '80%',
+        width: Platform.OS === 'web' ? '90%' : '85%',
+        maxHeight: Platform.OS === 'web' ? '80%' : '70%',
         borderRadius: 12,
         padding: 16,
-        elevation: Platform.OS === 'android' ? 24 : 0,
+        alignSelf: 'center',
     },
     detailModalHeader: {
         flexDirection: 'row',
@@ -440,7 +419,7 @@ const styles = StyleSheet.create({
     detailModalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        letterSpacing: 0.3,
+        textAlign: 'center',
     },
     detailModalBody: {
         maxHeight: '90%',
@@ -451,11 +430,9 @@ const styles = StyleSheet.create({
     detailLabel: {
         fontSize: 14,
         marginBottom: 4,
-        letterSpacing: 0.2,
     },
     detailValue: {
         fontSize: 16,
-        letterSpacing: 0.2,
     },
     detailSection: {
         marginTop: 8,
@@ -463,28 +440,24 @@ const styles = StyleSheet.create({
     detailSectionTitle: {
         fontSize: 14,
         marginBottom: 4,
-        letterSpacing: 0.2,
     },
     detailJson: {
         fontSize: 14,
         fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-        letterSpacing: 0,
     },
     filterModalContent: {
-        width: '80%',
+        width: Platform.OS === 'web' ? '80%' : '85%',
         borderRadius: 12,
         padding: 16,
-        elevation: Platform.OS === 'android' ? 24 : 0,
+        alignSelf: 'center',
     },
     filterOption: {
         paddingVertical: 12,
         paddingHorizontal: 16,
         borderRadius: 8,
         marginBottom: 8,
-        elevation: Platform.OS === 'android' ? 1 : 0,
     },
     filterOptionText: {
         fontSize: 16,
-        letterSpacing: 0.3,
     },
 });
